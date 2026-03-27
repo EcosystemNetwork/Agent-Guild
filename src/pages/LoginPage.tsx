@@ -1,9 +1,11 @@
 import { useAuth0 } from '@auth0/auth0-react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import agentLogo from '/agentlogo.png'
 
 export default function LoginPage() {
-  const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0()
+  const { loginWithRedirect, isAuthenticated, isLoading, error } = useAuth0()
+  const { state } = useLocation()
+  const returnTo: string = state?.returnTo ?? '/'
 
   if (isLoading) {
     return (
@@ -14,7 +16,7 @@ export default function LoginPage() {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />
+    return <Navigate to={returnTo} replace />
   }
 
   return (
@@ -55,8 +57,14 @@ export default function LoginPage() {
             </p>
           </div>
 
+          {error && (
+            <div className="w-full px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-400 text-center">
+              {error.message}
+            </div>
+          )}
+
           <button
-            onClick={() => loginWithRedirect()}
+            onClick={() => loginWithRedirect({ appState: { returnTo } })}
             className="w-full py-3 px-6 rounded-lg bg-primary-container text-white font-label font-bold uppercase tracking-wider text-sm transition-all duration-200 hover:brightness-110 hover:shadow-[0_0_20px_rgba(134,59,255,0.4)] active:scale-[0.98]"
           >
             Sign In
