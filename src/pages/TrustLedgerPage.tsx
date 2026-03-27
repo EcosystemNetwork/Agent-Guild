@@ -1,8 +1,5 @@
 import { useState } from 'react'
-import { agents } from '../data/agents'
-import { trustMetrics } from '../data/trust'
-import { trustEvents, badges, trustHistory } from '../data/trustAnalytics'
-import { guildMetrics } from '../data/activity'
+import { useData } from '../contexts/DataContext'
 import { formatPercent, formatNumber, cn } from '../lib/utils'
 import PageHeader from '../components/ui/PageHeader'
 import StatCard from '../components/ui/StatCard'
@@ -14,6 +11,7 @@ import Icon from '../components/ui/Icon'
 const riskColor: Record<string, string> = { low: '#10B981', medium: '#F59E0B', high: '#F43F5E' }
 
 export default function TrustLedgerPage() {
+  const { agents, trustMetrics, trustEvents, badges, trustHistory, guildMetrics } = useData()
   const [selectedTab, setSelectedTab] = useState<'rankings' | 'events' | 'badges'>('rankings')
   const [compareA, setCompareA] = useState<string>('')
   const [compareB, setCompareB] = useState<string>('')
@@ -49,10 +47,10 @@ export default function TrustLedgerPage() {
 
       {/* Summary */}
       <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        <StatCard label="Average Trust" value={formatPercent(avgTrust)} icon="verified_user" iconColor="text-primary" trend={{ value: guildMetrics.trustTrend, label: 'this cycle' }} accentBar={{ percent: avgTrust, color: '#7c3aed' }} />
+        <StatCard label="Average Trust" value={formatPercent(avgTrust)} icon="verified_user" iconColor="text-primary" trend={{ value: guildMetrics?.trustTrend ?? 0, label: 'this cycle' }} accentBar={{ percent: avgTrust, color: '#7c3aed' }} />
         <StatCard label="Success Rate" value={formatPercent(avgSuccess)} icon="target" iconColor="text-secondary" trend={{ value: 1.4, label: 'sustained' }} accentBar={{ percent: avgSuccess, color: '#03b5d3' }} />
         <StatCard label="Trust Events (24h)" value="1,247" icon="event" iconColor="text-status-online" trend={{ value: 8, label: 'this hour' }} />
-        <StatCard label="Verified Logs" value={formatNumber(guildMetrics.verifiedLogs)} icon="fact_check" iconColor="text-on-surface-variant" />
+        <StatCard label="Verified Logs" value={formatNumber(guildMetrics?.verifiedLogs ?? 0)} icon="fact_check" iconColor="text-on-surface-variant" />
       </section>
 
       {/* Comparison Module */}

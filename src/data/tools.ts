@@ -9,6 +9,28 @@ export interface AvailableTool {
 
 export const availableTools: AvailableTool[] = [
   {
+    name: 'dns-lookup',
+    label: 'DNS Lookup',
+    description: 'Resolve a hostname to A, MX, TXT, and CNAME records (live)',
+    icon: 'dns',
+    category: 'recon',
+    parameters: [
+      { key: 'hostname', label: 'Hostname', type: 'text' },
+      { key: 'types', label: 'Record Types', type: 'text' },
+    ],
+  },
+  {
+    name: 'http-probe',
+    label: 'HTTP Probe',
+    description: 'Make a real HTTP request to a URL and report status, headers, and timing (live)',
+    icon: 'http',
+    category: 'recon',
+    parameters: [
+      { key: 'url', label: 'URL', type: 'text' },
+      { key: 'method', label: 'Method', type: 'select', options: ['HEAD', 'GET'] },
+    ],
+  },
+  {
     name: 'network-scan',
     label: 'Network Scan',
     description: 'Scan target hosts for active services and anomalies',

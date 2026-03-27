@@ -6,11 +6,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      '/api/chat': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-      },
-      '/api/agent': {
+      '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
       },

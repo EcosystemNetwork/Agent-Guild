@@ -1,7 +1,4 @@
-import { agents } from '../data/agents'
-import { missions } from '../data/missions'
-import { activityFeed, guildMetrics } from '../data/activity'
-import { useAsyncData } from '../hooks/useAsyncData'
+import { useData } from '../contexts/DataContext'
 import { formatPercent, formatNumber } from '../lib/utils'
 import StatCard from '../components/ui/StatCard'
 import LoadingState from '../components/ui/LoadingState'
@@ -14,18 +11,17 @@ import ActivityFeedItem from '../components/ActivityFeedItem'
 import Icon from '../components/ui/Icon'
 
 export default function DashboardPage() {
-  const { data, isLoading, error } = useAsyncData(() => ({
-    agents: agents.slice(0, 4),
-    missions: missions.filter((m) => m.status === 'active').slice(0, 3),
-    activity: activityFeed.slice(0, 6),
-    metrics: guildMetrics,
-  }))
+  const { agents, missions, activityFeed, guildMetrics, isLoading, error } = useData()
 
   if (isLoading) return <LoadingState message="Initializing dashboard..." />
   if (error) return <ErrorState message={error} />
-  if (!data) return null
+  if (!guildMetrics) return null
 
-  const { metrics } = data
+  const metrics = guildMetrics
+  const topAgents = agents.slice(0, 4)
+  const activeMissions = missions.filter((m) => m.status === 'active')
+  const displayMissions = activeMissions.slice(0, 3)
+  const activity = activityFeed.slice(0, 6)
 
   return (
     <div className="space-y-8">
@@ -82,7 +78,7 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {data.agents.map((agent) => (
+            {topAgents.map((agent) => (
               <AgentCard key={agent.id} agent={agent} />
             ))}
           </div>
@@ -97,7 +93,7 @@ export default function DashboardPage() {
             <Icon name="rss_feed" size="sm" className="text-on-surface-variant/40" />
           </div>
           <div className="divide-y divide-white/[0.03]">
-            {data.activity.map((evt) => (
+            {activity.map((evt) => (
               <ActivityFeedItem key={evt.id} event={evt} />
             ))}
           </div>
@@ -111,11 +107,11 @@ export default function DashboardPage() {
             Active Missions
           </h2>
           <span className="text-[10px] font-label text-secondary uppercase tracking-wider">
-            {missions.filter((m) => m.status === 'active').length} in progress
+            {activeMissions.length} in progress
           </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {data.missions.map((mission) => (
+          {displayMissions.map((mission) => (
             <MissionCard key={mission.id} mission={mission} />
           ))}
         </div>

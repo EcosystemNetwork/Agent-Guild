@@ -5,15 +5,24 @@ import type {
   ToolAction,
   OperatorAction,
 } from '../types'
-import { streamChatCompletion, invokeToolAction } from './gateway'
+import {
+  streamAgentRun,
+  invokeToolAction,
+  fetchAgentRecord,
+  persistMission,
+  persistTranscript,
+} from './gateway'
 import { launchVoiceCall } from './bland'
-import type { ChatCompletionMessage } from './gateway'
+import type { ChatCompletionMessage, AgentRecord, AgentRunEvent } from './gateway'
 
 type MissionListener = (mission: MissionExecution) => void
 
 const activeMissions = new Map<string, MissionExecution>()
 const listeners = new Map<string, Set<MissionListener>>()
 const abortControllers = new Map<string, AbortController>()
+
+// Cache agent records so we don't fetch on every operation
+const agentCache = new Map<string, AgentRecord>()
 
 let missionCounter = 2848
 
@@ -22,7 +31,6 @@ function notify(missionId: string) {
   if (!mission) return
   const subs = listeners.get(missionId)
   subs?.forEach(fn => fn({ ...mission }))
-  // Also notify global listeners
   const global = listeners.get('*')
   global?.forEach(fn => fn({ ...mission }))
 }
@@ -37,6 +45,16 @@ function addTranscript(missionId: string, entry: Omit<MissionTranscriptEntry, 'i
     timestamp: now,
   })
   notify(missionId)
+  // Persist transcript entry to backend (fire-and-forget)
+  persistTranscript(missionId, entry)
+}
+
+async function resolveAgent(agentId: string): Promise<AgentRecord | null> {
+  const cached = agentCache.get(agentId)
+  if (cached) return cached
+  const record = await fetchAgentRecord(agentId)
+  if (record) agentCache.set(agentId, record)
+  return record
 }
 
 export function subscribe(missionId: string, listener: MissionListener): () => void {
@@ -65,7 +83,7 @@ export function launchMission(request: MissionLaunchRequest): MissionExecution {
     type: request.type,
     status: request.requiresApproval ? 'awaiting-approval' : 'approved',
     assignedAgentId: request.agentId,
-    openclawAgentId: `openclaw-${request.agentId}`,
+    agentRecordId: request.agentId,
     sessionKey,
     prompt: request.prompt,
     context: request.context,
@@ -81,6 +99,19 @@ export function launchMission(request: MissionLaunchRequest): MissionExecution {
   }
 
   activeMissions.set(id, mission)
+
+  // Persist mission to backend
+  persistMission({
+    id: mission.id,
+    name: mission.name,
+    type: mission.type,
+    status: mission.status,
+    assignedAgentId: mission.assignedAgentId,
+    sessionKey: mission.sessionKey,
+    prompt: mission.prompt,
+    context: mission.context,
+    priority: mission.priority,
+  })
 
   addTranscript(id, {
     role: 'system',
@@ -122,6 +153,7 @@ export function handleOperatorAction(missionId: string, action: OperatorAction) 
         agentName: 'Commander Kai',
         content: 'Mission stopped by operator.',
       })
+      persistMission({ ...mission })
       break
     }
     case 'retry': {
@@ -163,6 +195,7 @@ export function handleOperatorAction(missionId: string, action: OperatorAction) 
         agentName: 'Commander Kai',
         content: 'Mission escalated to human review. Execution paused.',
       })
+      persistMission({ ...mission })
       notify(missionId)
       break
     }
@@ -220,7 +253,8 @@ export async function executeToolAction(
     content: `Invoking tool: ${toolName} with input: ${JSON.stringify(input)}`,
   })
 
-  const result = await invokeToolAction(mission.openclawAgentId, toolName, input)
+  // Call the real backend tool execution endpoint
+  const result = await invokeToolAction(mission.assignedAgentId, toolName, input, missionId)
 
   const idx = mission.toolActions.findIndex(a => a.id === pendingAction.id)
   if (idx >= 0) mission.toolActions[idx] = result
@@ -243,52 +277,125 @@ async function startExecution(missionId: string) {
   const controller = new AbortController()
   abortControllers.set(missionId, controller)
 
+  // Resolve real agent record from backend
+  const agentRecord = await resolveAgent(mission.assignedAgentId)
+
   mission.status = 'running'
   mission.startedAt = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
   mission.progress = 5
 
+  // Persist running state
+  persistMission({
+    id: mission.id,
+    name: mission.name,
+    type: mission.type,
+    status: mission.status,
+    assignedAgentId: mission.assignedAgentId,
+    sessionKey: mission.sessionKey,
+    prompt: mission.prompt,
+    context: mission.context,
+    priority: mission.priority,
+    startedAt: mission.startedAt,
+  })
+
+  const agentDisplayName = agentRecord?.displayName ?? mission.assignedAgentId
+
   addTranscript(missionId, {
     role: 'system',
     agentName: 'SYSTEM',
-    content: `Execution started. Session: ${mission.sessionKey}. Connecting to agent ${mission.assignedAgentId}...`,
+    content: `Execution started. Session: ${mission.sessionKey}. Agent: ${agentDisplayName} (model: ${agentRecord?.modelId ?? 'default'})`,
   })
 
   try {
+    // Build system prompt from agent record (real) or fallback (generic)
+    const systemPrompt = agentRecord?.systemPrompt
+      ?? `You are ${mission.assignedAgentId}, an AI agent in the Agent Guild. Mission type: ${mission.type}. Context: ${mission.context}`
+
+    const toolInstruction = mission.type === 'execute-tool'
+      ? '\n\nYou have tools available. Use them to gather real data before answering. Always call at least one tool to support your analysis.'
+      : ''
+
     const messages: ChatCompletionMessage[] = [
-      { role: 'system', content: `You are ${mission.assignedAgentId}, an AI agent in the Agent Guild. Mission type: ${mission.type}. Context: ${mission.context}` },
+      {
+        role: 'system',
+        content: `${systemPrompt}\n\nMission: ${mission.name}\nType: ${mission.type}\nPriority: ${mission.priority}\nContext: ${mission.context}${toolInstruction}`,
+      },
       { role: 'user', content: mission.prompt },
     ]
 
     let accumulated = ''
+    let toolCallCount = 0
     mission.progress = 15
 
     addTranscript(missionId, {
       role: 'agent',
-      agentName: mission.assignedAgentId,
+      agentName: agentDisplayName,
       content: '[Processing...]',
     })
 
-    for await (const chunk of streamChatCompletion(mission.openclawAgentId, mission.sessionKey, messages)) {
+    // Stream through TrueFoundry with function-calling support
+    // The server handles the tool-calling loop — we receive content + tool events
+    for await (const event of streamAgentRun(mission.assignedAgentId, mission.sessionKey, messages, missionId) as AsyncGenerator<AgentRunEvent>) {
       if (controller.signal.aborted) return
-      accumulated += chunk
-      // Update the last transcript entry with accumulated text
-      const lastEntry = mission.transcript[mission.transcript.length - 1]
-      if (lastEntry && lastEntry.role === 'agent') {
-        lastEntry.content = accumulated
-        lastEntry.tokenCount = accumulated.split(' ').length
+
+      switch (event.type) {
+        case 'content': {
+          accumulated += event.content
+          const lastEntry = mission.transcript[mission.transcript.length - 1]
+          if (lastEntry && lastEntry.role === 'agent') {
+            lastEntry.content = accumulated
+            lastEntry.tokenCount = accumulated.split(' ').length
+          }
+          mission.progress = Math.min(85, 15 + Math.floor((accumulated.length / 500) * 70))
+          notify(missionId)
+          break
+        }
+        case 'tool_start': {
+          toolCallCount++
+          addTranscript(missionId, {
+            role: 'tool',
+            agentName: event.toolName,
+            content: `Invoking tool: ${event.toolName} with input: ${JSON.stringify(event.input)}`,
+          })
+          mission.progress = Math.min(92, 85 + toolCallCount * 3)
+          notify(missionId)
+          break
+        }
+        case 'tool_result': {
+          const toolAction: ToolAction = {
+            id: `tool-${Date.now()}`,
+            toolName: event.toolName,
+            input: {},
+            output: event.output,
+            status: event.status === 'success' ? 'success' : 'failure',
+            startedAt: new Date(Date.now() - event.durationMs).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+            completedAt: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+            error: event.error,
+          }
+          mission.toolActions.push(toolAction)
+
+          addTranscript(missionId, {
+            role: 'tool',
+            agentName: event.toolName,
+            content: event.status === 'success'
+              ? `Tool completed (${event.durationMs}ms): ${event.output?.slice(0, 200)}${(event.output?.length ?? 0) > 200 ? '...' : ''}`
+              : `Tool failed: ${event.error}`,
+          })
+          notify(missionId)
+          break
+        }
       }
-      mission.progress = Math.min(85, 15 + Math.floor((accumulated.length / 500) * 70))
-      notify(missionId)
     }
 
     if (controller.signal.aborted) return
 
-    // If it's an execute-tool type, simulate a tool action
-    if (mission.type === 'execute-tool') {
-      mission.progress = 88
-      notify(missionId)
-      await executeToolAction(missionId, 'network-scan', { targets: ['10.0.4.12', '10.0.4.15'] })
-    }
+    // Persist the final agent response transcript
+    persistTranscript(missionId, {
+      role: 'agent',
+      agentName: agentDisplayName,
+      content: accumulated,
+      tokenCount: accumulated.split(' ').length,
+    })
 
     mission.status = 'completed'
     mission.progress = 100
@@ -297,7 +404,23 @@ async function startExecution(missionId: string) {
     addTranscript(missionId, {
       role: 'system',
       agentName: 'SYSTEM',
-      content: `Mission ${missionId} completed successfully.`,
+      content: `Mission ${missionId} completed successfully. Tools invoked: ${toolCallCount}.`,
+    })
+
+    // Persist final state
+    persistMission({
+      id: mission.id,
+      name: mission.name,
+      type: mission.type,
+      status: mission.status,
+      assignedAgentId: mission.assignedAgentId,
+      sessionKey: mission.sessionKey,
+      prompt: mission.prompt,
+      context: mission.context,
+      priority: mission.priority,
+      startedAt: mission.startedAt,
+      completedAt: mission.completedAt,
+      progress: mission.progress,
     })
   } catch (err) {
     if (controller.signal.aborted) return
@@ -309,6 +432,21 @@ async function startExecution(missionId: string) {
       role: 'system',
       agentName: 'SYSTEM',
       content: `Mission ${missionId} failed: ${mission.error}`,
+    })
+
+    persistMission({
+      id: mission.id,
+      name: mission.name,
+      type: mission.type,
+      status: mission.status,
+      assignedAgentId: mission.assignedAgentId,
+      sessionKey: mission.sessionKey,
+      prompt: mission.prompt,
+      context: mission.context,
+      priority: mission.priority,
+      startedAt: mission.startedAt,
+      completedAt: mission.completedAt,
+      error: mission.error,
     })
   } finally {
     abortControllers.delete(missionId)

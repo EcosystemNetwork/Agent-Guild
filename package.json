@@ -9,10 +9,14 @@
     "dev:all": "npm run dev:server & npm run dev",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:smoke": "vitest run --reporter=verbose tests/smoke/"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.16.0",
+    "better-sqlite3": "^12.8.0",
     "express": "^5.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
@@ -21,6 +25,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@tailwindcss/vite": "^4.2.2",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/express": "^5.0.0",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
@@ -34,6 +39,7 @@
     "tsx": "^4.19.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.0",
-    "vite": "^8.0.1"
+    "vite": "^8.0.1",
+    "vitest": "^4.1.2"
   }
 }

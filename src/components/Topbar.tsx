@@ -1,6 +1,6 @@
 import { useAuth0 } from '@auth0/auth0-react'
 import { useNavigate } from 'react-router-dom'
-import { guildMetrics } from '../data/activity'
+import { useData } from '../contexts/DataContext'
 import Icon from './ui/Icon'
 import agentLogo from '/agentlogo.png'
 
@@ -9,6 +9,7 @@ interface TopbarProps {
 }
 
 export default function Topbar({ onMenuToggle }: TopbarProps) {
+  const { guildMetrics } = useData()
   const { user, logout } = useAuth0()
   const navigate = useNavigate()
 
@@ -40,9 +41,9 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
           </h1>
         </div>
         <div className="hidden lg:flex items-center gap-3">
-          <StatPill label={`${guildMetrics.activeMissions} Active Missions`} />
-          <StatPill label={`${guildMetrics.agentsDeployed} Agents Deployed`} />
-          <StatPill label={`${guildMetrics.uptime}% Uptime`} pulse />
+          <StatPill label={`${guildMetrics?.activeMissions ?? 0} Active Missions`} />
+          <StatPill label={`${guildMetrics?.agentsDeployed ?? 0} Agents Deployed`} />
+          <StatPill label={`${guildMetrics?.uptime ?? 0}% Uptime`} pulse />
         </div>
       </div>
       <div className="flex items-center gap-4 sm:gap-6">

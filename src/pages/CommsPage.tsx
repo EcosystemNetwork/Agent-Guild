@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { agents } from '../data/agents'
-import { channels, chatMessages, missionContext } from '../data/chat'
-import type { ChatMessage } from '../data/chat'
+import { useData } from '../contexts/DataContext'
+import type { ChatMessage } from '../types'
 import { cn, agentStatusColor, executionStatusColor, missionTypeColor } from '../lib/utils'
 import { streamMessage, checkGatewayHealth } from '../lib/api'
 import type { ChatCompletionMessage } from '../lib/api'
@@ -12,10 +11,10 @@ import {
   saveSessionMeta,
   clearSessionMeta,
   loadSessionMeta,
-} from '../api/openclaw'
+} from '../api/session'
 import { useMissions } from '../contexts/MissionContext'
 import { useAirbyte } from '../contexts/AirbyteContext'
-import { launchVoiceCall, subscribeToVoiceCalls, getCallsForChannel } from '../services/bland'
+import { launchVoiceCall, subscribeToVoiceCalls, getCallsForChannel, fetchCallDetails } from '../services/bland'
 import type { VoiceCall } from '../types'
 import PageHeader from '../components/ui/PageHeader'
 import GlassPanel from '../components/ui/GlassPanel'
@@ -55,24 +54,36 @@ const agentAvatarColor: Record<string, string> = {
 }
 
 export default function CommsPage() {
+  const { agents, channels, chatMessages, missionContext } = useData()
   const { executions } = useMissions()
   const { getMissionContext: getAirbyteContext, triggerMissionSync } = useAirbyte()
   const [activeChannel, setActiveChannel] = useState('general')
   const [input, setInput] = useState('')
-  const [localMessages, setLocalMessages] = useState<Record<string, ChatMessage[]>>(chatMessages)
+  const [localMessages, setLocalMessages] = useState<Record<string, ChatMessage[]>>({})
   const [showPinned, setShowPinned] = useState(false)
   const [showContext, setShowContext] = useState(true)
   const [isStreaming, setIsStreaming] = useState(false)
   const [gatewayStatus, setGatewayStatus] = useState<'unknown' | 'ok' | 'offline'>('unknown')
   // Per-channel session keys: mission threads, agent DMs, and team channels each get isolated keys
-  const [sessionKeys, setSessionKeys] = useState<Record<string, string>>(() => {
-    const stored = loadSessionMeta()
-    const keys: Record<string, string> = {}
-    for (const ch of channels) {
-      keys[ch.id] = stored[ch.id]?.sessionKey || deriveSessionKey(ch)
+  const [sessionKeys, setSessionKeys] = useState<Record<string, string>>({})
+
+  // Sync local messages and session keys when backend data loads
+  useEffect(() => {
+    if (Object.keys(chatMessages).length > 0 && Object.keys(localMessages).length === 0) {
+      setLocalMessages(chatMessages)
     }
-    return keys
-  })
+  }, [chatMessages]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (channels.length > 0 && Object.keys(sessionKeys).length === 0) {
+      const stored = loadSessionMeta()
+      const keys: Record<string, string> = {}
+      for (const ch of channels) {
+        keys[ch.id] = stored[ch.id]?.sessionKey || deriveSessionKey(ch)
+      }
+      setSessionKeys(keys)
+    }
+  }, [channels]) // eslint-disable-line react-hooks/exhaustive-deps
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -231,7 +242,7 @@ export default function CommsPage() {
     setInput('')
     inputRef.current?.focus()
 
-    // If gateway is online and channel has a target agent, stream through OpenClaw
+    // If gateway is online and channel has a target agent, stream through gateway
     const targetAgent = getTargetAgent()
     if (gatewayStatus === 'ok' && targetAgent) {
       setIsStreaming(true)
@@ -586,6 +597,8 @@ export default function CommsPage() {
                   const icon = callStatusIcon[call.status] || 'call'
                   const isActive = call.status === 'ringing' || call.status === 'in-progress'
                   const isExpanded = expandedCallId === call.id
+                  const isSimulated = call.callId?.startsWith('sim-') ?? false
+                  const isTerminal = call.status === 'completed' || call.status === 'failed' || call.status === 'no-answer'
 
                   return (
                     <div key={call.id} className="flex justify-center">
@@ -594,7 +607,13 @@ export default function CommsPage() {
                           'w-full max-w-md rounded-xl border px-4 py-3 space-y-2 transition-all cursor-pointer',
                           isActive ? 'border-status-online/20 bg-status-online/5' : 'border-white/5 bg-surface-container-high/40',
                         )}
-                        onClick={() => setExpandedCallId(isExpanded ? null : call.id)}
+                        onClick={() => {
+                          setExpandedCallId(isExpanded ? null : call.id)
+                          // Fetch real details when expanding a completed real call
+                          if (!isExpanded && isTerminal && !isSimulated) {
+                            fetchCallDetails(call.id)
+                          }
+                        }}
                       >
                         {/* Call header */}
                         <div className="flex items-center gap-3">
@@ -609,6 +628,16 @@ export default function CommsPage() {
                               <span className="text-[10px] font-label font-bold uppercase tracking-wider" style={{ color }}>
                                 {call.status === 'ringing' ? 'Ringing' : call.status === 'in-progress' ? 'In Progress' : call.status === 'completed' ? 'Call Completed' : call.status === 'failed' ? 'Call Failed' : call.status === 'no-answer' ? 'No Answer' : 'Queued'}
                               </span>
+                              {isSimulated && (
+                                <span className="text-[8px] font-label uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                  Simulated
+                                </span>
+                              )}
+                              {!isSimulated && call.callId && (
+                                <span className="text-[8px] font-label uppercase tracking-widest px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                  Live
+                                </span>
+                              )}
                               {isActive && (
                                 <span className="flex gap-0.5">
                                   <span className="w-1 h-1 rounded-full animate-bounce" style={{ backgroundColor: color, animationDelay: '0ms' }} />
@@ -627,22 +656,45 @@ export default function CommsPage() {
                                   <span>{Math.floor(call.duration / 60)}m {call.duration % 60}s</span>
                                 </>
                               )}
+                              {call.callId && !isSimulated && (
+                                <>
+                                  <span>·</span>
+                                  <span className="font-mono text-[9px]">{call.callId.slice(0, 12)}</span>
+                                </>
+                              )}
                             </div>
                           </div>
                           <Icon name={isExpanded ? 'expand_less' : 'expand_more'} size="sm" className="text-on-surface-variant/30" />
                         </div>
 
-                        {/* Expanded: summary + transcript */}
-                        {isExpanded && call.summary && (
+                        {/* Expanded: summary + transcript + recording */}
+                        {isExpanded && (call.summary || call.error || isActive) && (
                           <div className="space-y-2 pt-2 border-t border-white/5">
-                            <div>
-                              <p className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant/50 mb-1">Summary</p>
-                              <p className="text-xs text-on-surface/80 leading-relaxed">{call.summary}</p>
-                            </div>
+                            {call.summary && (
+                              <div>
+                                <p className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant/50 mb-1">Summary</p>
+                                <p className="text-xs text-on-surface/80 leading-relaxed">{call.summary}</p>
+                              </div>
+                            )}
                             {call.transcript && (
                               <div>
                                 <p className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant/50 mb-1">Transcript</p>
                                 <pre className="text-[11px] text-on-surface/60 leading-relaxed whitespace-pre-wrap font-mono bg-white/[0.02] rounded p-2 max-h-40 overflow-y-auto custom-scrollbar">{call.transcript}</pre>
+                              </div>
+                            )}
+                            {call.recordingUrl && (
+                              <div>
+                                <p className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant/50 mb-1">Recording</p>
+                                <a
+                                  href={call.recordingUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 text-xs text-accent-primary hover:text-accent-primary/80 transition-colors"
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  <Icon name="play_circle" size="sm" />
+                                  Play Recording
+                                </a>
                               </div>
                             )}
                             {call.error && (
@@ -650,6 +702,9 @@ export default function CommsPage() {
                                 <Icon name="error" size="sm" />
                                 {call.error}
                               </div>
+                            )}
+                            {isActive && !call.summary && (
+                              <p className="text-[10px] text-on-surface-variant/40 italic">Call in progress... details will appear when completed.</p>
                             )}
                           </div>
                         )}

@@ -148,3 +148,99 @@ export async function pollCallEvents(): Promise<Record<string, unknown>[]> {
   const data = await resp.json()
   return data.events ?? []
 }
+
+// ── Persisted Data API (/api/data/*) ──
+
+const DATA_BASE = '/api/data'
+
+async function dataGet<T>(path: string): Promise<T> {
+  const resp = await fetch(`${DATA_BASE}${path}`)
+  if (!resp.ok) throw new Error(`GET ${path} failed: ${resp.status}`)
+  return resp.json()
+}
+
+async function dataPatch<T>(path: string, body: Record<string, unknown>): Promise<T> {
+  const resp = await fetch(`${DATA_BASE}${path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!resp.ok) throw new Error(`PATCH ${path} failed: ${resp.status}`)
+  return resp.json()
+}
+
+async function dataPost<T>(path: string, body: Record<string, unknown>): Promise<T> {
+  const resp = await fetch(`${DATA_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!resp.ok) throw new Error(`POST ${path} failed: ${resp.status}`)
+  return resp.json()
+}
+
+// Agents
+import type { Agent, Mission, ActivityEvent, GuildMetrics, TrustMetric, OperatorAlert, AgentRegistryEntry, RoutingRule, MissionExecution, ChatMessage, ChatChannel, TrustEvent, Badge, ApprovalItem, Incident, HealthCard, AvailableTool } from '../types'
+
+export const dataApi = {
+  // Agents
+  getAgents: () => dataGet<Agent[]>('/agents'),
+  getAgent: (id: string) => dataGet<Agent>(`/agents/${id}`),
+  createAgent: (agent: Partial<Agent> & { id: string }) => dataPost<Agent>('/agents', agent),
+  updateAgent: (id: string, updates: Partial<Agent>) => dataPatch<Agent>(`/agents/${id}`, updates),
+
+  // Missions
+  getMissions: (filters?: { status?: string; type?: string }) => {
+    const params = new URLSearchParams()
+    if (filters?.status) params.set('status', filters.status)
+    if (filters?.type) params.set('type', filters.type)
+    const qs = params.toString()
+    return dataGet<Mission[]>(`/missions${qs ? '?' + qs : ''}`)
+  },
+  getMission: (id: string) => dataGet<Mission>(`/missions/${id}`),
+  createMission: (mission: Partial<Mission> & { id: string }) => dataPost<Mission>('/missions', mission),
+  updateMission: (id: string, updates: Partial<Mission>) => dataPatch<Mission>(`/missions/${id}`, updates),
+
+  // Mission context
+  getMissionContext: () => dataGet<Record<string, { objective: string; status: string; agents: string[]; progress: number; threats: string[] }>>('/mission-context'),
+
+  // Activity
+  getActivity: (limit?: number) => dataGet<ActivityEvent[]>(`/activity${limit ? '?limit=' + limit : ''}`),
+
+  // Guild metrics
+  getGuildMetrics: () => dataGet<GuildMetrics>('/guild-metrics'),
+  updateGuildMetrics: (updates: Partial<GuildMetrics>) => dataPatch<GuildMetrics>('/guild-metrics', updates),
+
+  // Trust
+  getTrustMetrics: () => dataGet<TrustMetric[]>('/trust-metrics'),
+  getTrustHistory: () => dataGet<{ date: string; score: number }[]>('/trust-history'),
+  getTrustEvents: () => dataGet<TrustEvent[]>('/trust-events'),
+  getBadges: () => dataGet<Badge[]>('/badges'),
+
+  // Chat
+  getChannels: () => dataGet<ChatChannel[]>('/channels'),
+  getMessages: () => dataGet<Record<string, ChatMessage[]>>('/messages'),
+  getChannelMessages: (channelId: string) => dataGet<ChatMessage[]>(`/channels/${channelId}/messages`),
+  sendChatMessage: (msg: Partial<ChatMessage> & { id: string }) => dataPost<ChatMessage>('/messages', msg as Record<string, unknown>),
+
+  // Operator
+  getApprovals: () => dataGet<ApprovalItem[]>('/approvals'),
+  updateApproval: (id: string, status: string) => dataPatch<ApprovalItem>(`/approvals/${id}`, { status }),
+  getIncidents: () => dataGet<Incident[]>('/incidents'),
+  updateIncident: (id: string, updates: Partial<Incident>) => dataPatch<Incident>(`/incidents/${id}`, updates as Record<string, unknown>),
+  getHealthCards: () => dataGet<HealthCard[]>('/health-cards'),
+  getOperatorAlerts: () => dataGet<OperatorAlert[]>('/operator-alerts'),
+  updateAlert: (id: string, status: string) => dataPatch<OperatorAlert>(`/operator-alerts/${id}`, { status }),
+
+  // Registry
+  getRegistry: () => dataGet<AgentRegistryEntry[]>('/registry'),
+  updateRegistryEntry: (guildAgentId: string, updates: Partial<AgentRegistryEntry>) => dataPatch<AgentRegistryEntry>(`/registry/${guildAgentId}`, updates as Record<string, unknown>),
+  getRoutingRules: () => dataGet<RoutingRule[]>('/routing-rules'),
+
+  // Tools
+  getTools: () => dataGet<AvailableTool[]>('/tools'),
+
+  // Mission executions
+  getExecutions: () => dataGet<MissionExecution[]>('/executions'),
+  getExecution: (id: string) => dataGet<MissionExecution>(`/executions/${id}`),
+}

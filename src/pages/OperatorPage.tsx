@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { missions } from '../data/missions'
-import { guildMetrics } from '../data/activity'
-import { approvalQueue as initialApprovals, recentIncidents as initialIncidents, healthCards, approvalTypeIcon, severityColor, healthStatusColor } from '../data/operator'
-import type { ApprovalItem, Incident } from '../data/operator'
+import { useData } from '../contexts/DataContext'
+import { approvalTypeIcon, severityColor, healthStatusColor } from '../data/operator'
+import type { Incident } from '../types'
 import { cn } from '../lib/utils'
 import PageHeader from '../components/ui/PageHeader'
 import StatCard from '../components/ui/StatCard'
@@ -12,18 +11,20 @@ import Icon from '../components/ui/Icon'
 import StatusChip from '../components/ui/StatusChip'
 
 export default function OperatorPage() {
-  const [approvals, setApprovals] = useState<ApprovalItem[]>(initialApprovals)
-  const [incidents, setIncidents] = useState<Incident[]>(initialIncidents)
+  const data = useData()
+  const approvals = data.approvalQueue
+  const incidents = data.incidents
+  const { missions, guildMetrics, healthCards } = data
   const [activeTab, setActiveTab] = useState<'approvals' | 'incidents' | 'health'>('approvals')
   const [pauseConfirm, setPauseConfirm] = useState<string | null>(null)
   const [pausedMissions, setPausedMissions] = useState<Set<string>>(new Set())
 
   const handleApproval = (id: string, action: 'approved' | 'denied') => {
-    setApprovals(prev => prev.map(a => a.id === id ? { ...a, status: action } : a))
+    data.updateApproval(id, action)
   }
 
   const handleIncidentStatus = (id: string, status: Incident['status']) => {
-    setIncidents(prev => prev.map(inc => inc.id === id ? { ...inc, status } : inc))
+    data.updateIncident(id, { status })
   }
 
   const handlePauseMission = (missionId: string) => {
@@ -48,7 +49,7 @@ export default function OperatorPage() {
 
       {/* Summary */}
       <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-        <StatCard label="Cluster Status" value={degradedSystems > 0 ? 'DEGRADED' : 'OPERATIONAL'} icon="dns" iconColor={degradedSystems > 0 ? 'text-status-busy' : 'text-status-online'} sparkline={guildMetrics.sparkline} />
+        <StatCard label="Cluster Status" value={degradedSystems > 0 ? 'DEGRADED' : 'OPERATIONAL'} icon="dns" iconColor={degradedSystems > 0 ? 'text-status-busy' : 'text-status-online'} sparkline={guildMetrics?.sparkline} />
         <StatCard label="Pending Approvals" value={String(pendingCount)} icon="pending_actions" iconColor="text-status-busy" trend={{ value: pendingCount > 3 ? 2 : -1, label: 'queue' }} />
         <StatCard label="Active Incidents" value={String(activeIncidents)} icon="warning" iconColor="text-status-offline" trend={{ value: -2, label: 'last hour' }} />
         <StatCard label="System Health" value={`${healthCards.filter(h => h.status === 'healthy').length}/${healthCards.length}`} icon="monitor_heart" iconColor="text-secondary" accentBar={{ percent: (healthCards.filter(h => h.status === 'healthy').length / healthCards.length) * 100, color: '#10B981' }} />

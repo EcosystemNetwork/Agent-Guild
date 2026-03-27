@@ -4,6 +4,7 @@ type CallListener = (call: VoiceCall) => void
 
 const activeCalls = new Map<string, VoiceCall>()
 const listeners = new Set<CallListener>()
+const pollingTimers = new Map<string, ReturnType<typeof setInterval>>()
 
 let callCounter = 1
 
@@ -79,6 +80,8 @@ export async function launchVoiceCall(request: VoiceCallLaunchRequest): Promise<
       call.callId = data.call_id ?? null
       call.status = 'ringing'
       notify(call)
+      // Start polling for real call completion details
+      startCallPolling(id)
       return { ...call }
     }
 
@@ -140,6 +143,121 @@ export function handleWebhookEvent(event: {
   notify(call)
 }
 
+// ── Real Bland call polling — fetches post-call details until terminal state ──
+
+function startCallPolling(callId: string) {
+  // Poll every 3 seconds for call status updates
+  const timer = setInterval(async () => {
+    const call = activeCalls.get(callId)
+    if (!call) {
+      stopCallPolling(callId)
+      return
+    }
+
+    try {
+      const resp = await fetch(`/api/voice/call/${encodeURIComponent(call.callId || callId)}`)
+      if (!resp.ok) return
+
+      const data = await resp.json()
+      const details = data.call || data.bland
+
+      if (!details) return
+
+      const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+
+      // Map Bland status to our CallStatus
+      if (details.status) {
+        const statusMap: Record<string, CallStatus> = {
+          'queued': 'queued',
+          'ringing': 'ringing',
+          'in-progress': 'in-progress',
+          'completed': 'completed',
+          'failed': 'failed',
+          'no-answer': 'no-answer',
+        }
+        const mapped = statusMap[details.status]
+        if (mapped && mapped !== call.status) {
+          call.status = mapped
+        }
+      }
+
+      if (details.completed || details.status === 'completed') {
+        call.status = details.error_message ? 'failed' : 'completed'
+        call.completedAt = call.completedAt || now
+      }
+
+      if (details.call_length != null || details.duration != null) {
+        call.duration = details.call_length ?? details.duration
+      }
+      if (details.summary) call.summary = details.summary
+      if (details.concatenated_transcript || details.transcript) {
+        call.transcript = details.concatenated_transcript || details.transcript
+      }
+      if (details.recording_url || details.recordingUrl) {
+        call.recordingUrl = details.recording_url || details.recordingUrl
+      }
+      if (details.error_message || details.error) {
+        call.error = details.error_message || details.error
+      }
+
+      notify(call)
+
+      // Stop polling once call reaches terminal state
+      if (call.status === 'completed' || call.status === 'failed' || call.status === 'no-answer') {
+        stopCallPolling(callId)
+      }
+    } catch {
+      // Silently retry on next interval
+    }
+  }, 3000)
+
+  pollingTimers.set(callId, timer)
+
+  // Safety: stop polling after 10 minutes max
+  setTimeout(() => stopCallPolling(callId), 10 * 60 * 1000)
+}
+
+function stopCallPolling(callId: string) {
+  const timer = pollingTimers.get(callId)
+  if (timer) {
+    clearInterval(timer)
+    pollingTimers.delete(callId)
+  }
+}
+
+// ── Fetch post-call details on demand ──
+
+export async function fetchCallDetails(callId: string): Promise<VoiceCall | null> {
+  const call = activeCalls.get(callId)
+  if (!call) return null
+
+  try {
+    const resp = await fetch(`/api/voice/call/${encodeURIComponent(call.callId || callId)}`)
+    if (!resp.ok) return { ...call }
+
+    const data = await resp.json()
+    const details = data.call || data.bland
+
+    if (details) {
+      if (details.summary) call.summary = details.summary
+      if (details.concatenated_transcript || details.transcript) {
+        call.transcript = details.concatenated_transcript || details.transcript
+      }
+      if (details.recording_url || details.recordingUrl) {
+        call.recordingUrl = details.recording_url || details.recordingUrl
+      }
+      if (details.call_length != null || details.duration != null) {
+        call.duration = details.call_length ?? details.duration
+      }
+      notify(call)
+    }
+
+    return { ...call }
+  } catch {
+    return { ...call }
+  }
+}
+
 // ── Simulation for demo without live Bland API ──
 
 async function simulateCall(callId: string) {
@@ -163,21 +281,22 @@ async function simulateCall(callId: string) {
   call.status = 'completed'
   call.completedAt = now
   call.duration = Math.floor(45 + Math.random() * 120)
-  call.summary = buildMockCallSummary(call)
-  call.transcript = buildMockTranscript(call)
+  call.summary = buildSimulatedSummary(call)
+  call.transcript = buildSimulatedTranscript(call)
   notify(call)
 }
 
-function buildMockCallSummary(call: VoiceCall): string {
+function buildSimulatedSummary(call: VoiceCall): string {
   if (call.missionId) {
-    return `Outbound escalation call for ${call.missionId}. Contact confirmed receipt of mission briefing. Key actions agreed: (1) Escalation acknowledged and logged, (2) Response team notified and en route, (3) Follow-up scheduled in 30 minutes. Contact requested written summary via secure channel.`
+    return `[SIMULATED] Outbound escalation call for ${call.missionId}. Contact confirmed receipt of mission briefing. Key actions agreed: (1) Escalation acknowledged and logged, (2) Response team notified and en route, (3) Follow-up scheduled in 30 minutes. Contact requested written summary via secure channel.`
   }
-  return `Outbound call completed to ${call.phoneNumber}. Contact reached and briefed on current guild operational status. No immediate action items identified. Contact confirmed availability for follow-up if situation escalates.`
+  return `[SIMULATED] Outbound call completed to ${call.phoneNumber}. Contact reached and briefed on current guild operational status. No immediate action items identified. Contact confirmed availability for follow-up if situation escalates.`
 }
 
-function buildMockTranscript(call: VoiceCall): string {
+function buildSimulatedTranscript(call: VoiceCall): string {
   const mission = call.missionId ? ` regarding mission ${call.missionId}` : ''
   return [
+    `[SIMULATED TRANSCRIPT]`,
     `[Agent]: Hello, this is an automated call from Agent Guild${mission}. Am I speaking with the designated escalation contact?`,
     `[Contact]: Yes, this is the right number. What's the situation?`,
     `[Agent]: We've detected elevated threat activity requiring immediate attention. Our agents have identified anomalous patterns that warrant human coordination.`,

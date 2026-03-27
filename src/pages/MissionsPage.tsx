@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react'
-import { missions } from '../data/missions'
-import { agents } from '../data/agents'
-import { routingRules } from '../data/registry'
-import { availableTools } from '../data/tools'
+import { useData } from '../contexts/DataContext'
 import type { Mission, MissionStatus, MissionType, ExecutionMissionType, Priority, MissionExecution } from '../types'
 import { cn, missionTypeColor, priorityColor, connectionStatusColor, routingRoleColor, executionStatusColor } from '../lib/utils'
 import { useRegistry } from '../contexts/RegistryContext'
@@ -29,6 +26,7 @@ const missionTypeOptions: { value: ExecutionMissionType; label: string; icon: st
 ]
 
 export default function MissionsPage() {
+  const { agents, missions, routingRules, availableTools } = useData()
   const { registry } = useRegistry()
   const { executions, launchMission, approveMission, operatorAction, executeToolAction } = useMissions()
 
@@ -404,14 +402,14 @@ export default function MissionsPage() {
                 return (
                   <div className="mb-6 glass-panel-subtle rounded-lg p-4">
                     <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-3 flex items-center gap-1.5">
-                      <Icon name="hub" size="sm" className="text-secondary" /> OpenClaw Target
+                      <Icon name="hub" size="sm" className="text-secondary" /> Agent Record
                     </p>
                     {entry ? (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full" style={{ background: connColor }} />
-                            <span className="text-xs font-headline font-bold text-white">{entry.openclawAgentId}</span>
+                            <span className="text-xs font-headline font-bold text-white">{entry.agentRecordId}</span>
                           </div>
                           <StatusChip label={entry.connectionStatus === 'connected' ? 'LINKED' : 'UNLINKED'} color={connColor} pulse={entry.connectionStatus === 'connected'} />
                         </div>
@@ -433,7 +431,7 @@ export default function MissionsPage() {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-[10px] text-on-surface-variant/40 italic">No OpenClaw binding found for this agent</p>
+                      <p className="text-[10px] text-on-surface-variant/40 italic">No agent record binding found</p>
                     )}
                   </div>
                 )

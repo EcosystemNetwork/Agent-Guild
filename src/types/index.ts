@@ -98,7 +98,7 @@ export type AgentRoutingRole = 'scout' | 'negotiator' | 'operator' | 'analyst' |
 
 export interface AgentRegistryEntry {
   guildAgentId: string
-  openclawAgentId: string
+  agentRecordId: string
   displayName: string
   role: AgentRoutingRole
   defaultSessionMode: SessionMode
@@ -128,7 +128,7 @@ export interface MissionExecution {
   type: ExecutionMissionType
   status: ExecutionStatus
   assignedAgentId: string
-  openclawAgentId: string
+  agentRecordId: string
   sessionKey: string
   prompt: string
   context: string
@@ -250,6 +250,30 @@ export interface AirbyteMissionContext {
 
 // ── Connected Account Types ──
 
+export type ConnectionProvider = 'google' | 'github' | 'slack'
+
+export interface ConnectedAccountConfig {
+  provider: ConnectionProvider
+  label: string
+  icon: string
+  description: string
+  color: string
+  scopes: string[]
+  auth0Connection: string // Auth0 connection identifier (e.g. 'google-oauth2')
+}
+
+export type ConnectionLinkStatus = 'linked' | 'unlinked' | 'expired' | 'error'
+
+export interface ConnectedAccountState {
+  provider: ConnectionProvider
+  status: ConnectionLinkStatus
+  linkedAt: string | null
+  lastUsedAt: string | null
+  scopes: string[]
+  error: string | null
+}
+
+/** @deprecated Use ConnectedAccountConfig instead */
 export interface ConnectedAccount {
   provider: string
   label: string
@@ -259,6 +283,96 @@ export interface ConnectedAccount {
   scopes: string[]
   connected?: boolean
   connectedAt?: string
+}
+
+// ── Chat Types ──
+
+export interface ChatMessage {
+  id: string
+  from: string
+  fromAvatar: string
+  to: string
+  content: string
+  timestamp: string
+  channel: string
+  pinned?: boolean
+  type: 'message' | 'system' | 'alert'
+}
+
+export interface ChatChannel {
+  id: string
+  name: string
+  icon: string
+  unread: number
+  missionId?: string
+}
+
+// ── Trust Analytics Types ──
+
+export interface TrustEvent {
+  id: string
+  agentId: string
+  agentName: string
+  delta: number
+  reason: string
+  timestamp: string
+  missionId?: string
+}
+
+export interface Badge {
+  id: string
+  name: string
+  icon: string
+  description: string
+  color: string
+  earnedBy: string[]
+}
+
+// ── Operator Extended Types ──
+
+export interface ApprovalItem {
+  id: string
+  type: 'mission-launch' | 'agent-deploy' | 'escalation' | 'access-request'
+  title: string
+  description: string
+  requestedBy: string
+  priority: 'low' | 'medium' | 'high' | 'critical'
+  timestamp: string
+  status: 'pending' | 'approved' | 'denied'
+}
+
+export interface Incident {
+  id: string
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  title: string
+  description: string
+  detectedAt: string
+  resolvedAt?: string
+  assignedAgent: string
+  status: 'active' | 'investigating' | 'resolved' | 'escalated'
+}
+
+export interface HealthCard {
+  id: string
+  name: string
+  status: 'healthy' | 'degraded' | 'critical'
+  metric: string
+  value: number
+  max: number
+  unit: string
+  trend: 'up' | 'down' | 'stable'
+  icon: string
+}
+
+// ── Tool Types ──
+
+export interface AvailableTool {
+  name: string
+  label: string
+  description: string
+  icon: string
+  category: 'recon' | 'defense' | 'intel' | 'admin'
+  parameters: { key: string; label: string; type: 'text' | 'select'; options?: string[] }[]
 }
 
 // ── Async Data State ──

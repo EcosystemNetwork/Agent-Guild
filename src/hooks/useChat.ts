@@ -8,15 +8,15 @@ import {
   saveSessionMeta,
   clearSessionMeta,
   loadSessionMeta,
-} from '../api/openclaw'
-import type { SessionMeta } from '../api/openclaw'
-import type { ChatMessage, ChatChannel } from '../data/chat'
-import { missionContext } from '../data/chat'
+} from '../api/session'
+import type { SessionMeta } from '../api/session'
+import type { ChatMessage, ChatChannel } from '../types'
 import { useAirbyte } from '../contexts/AirbyteContext'
 
 interface UseChatOptions {
   channel: ChatChannel
   initialMessages: ChatMessage[]
+  missionContext: Record<string, { objective: string; status: string; agents: string[]; progress: number; threats: string[] }>
 }
 
 interface UseChatReturn {
@@ -28,7 +28,7 @@ interface UseChatReturn {
   resetSession: () => void
 }
 
-export function useChat({ channel, initialMessages }: UseChatOptions): UseChatReturn {
+export function useChat({ channel, initialMessages, missionContext }: UseChatOptions): UseChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
@@ -77,7 +77,7 @@ export function useChat({ channel, initialMessages }: UseChatOptions): UseChatRe
       }
     }
 
-    // Map chat messages to OpenClaw format
+    // Map chat messages to completion format
     for (const m of msgs) {
       if (m.type !== 'message') continue
       history.push({

@@ -1,43 +1,31 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useCallback, type ReactNode } from 'react'
 import type { AgentRegistryEntry, ConnectionStatus } from '../types'
-import { agentRegistry as initialRegistry } from '../data/registry'
+import { useData } from './DataContext'
 
 interface RegistryContextValue {
   registry: AgentRegistryEntry[]
   getEntry: (guildAgentId: string) => AgentRegistryEntry | undefined
-  rebind: (guildAgentId: string, newOpenclawAgentId: string) => void
+  rebind: (guildAgentId: string, newAgentRecordId: string) => void
   updateConnectionStatus: (guildAgentId: string, status: ConnectionStatus) => void
 }
 
 const RegistryContext = createContext<RegistryContextValue | null>(null)
 
 export function RegistryProvider({ children }: { children: ReactNode }) {
-  const [registry, setRegistry] = useState<AgentRegistryEntry[]>(initialRegistry)
+  const { registry, updateRegistryEntry } = useData()
 
   const getEntry = useCallback(
     (guildAgentId: string) => registry.find(e => e.guildAgentId === guildAgentId),
     [registry],
   )
 
-  const rebind = useCallback((guildAgentId: string, newOpenclawAgentId: string) => {
-    setRegistry(prev =>
-      prev.map(entry =>
-        entry.guildAgentId === guildAgentId
-          ? { ...entry, openclawAgentId: newOpenclawAgentId, lastActivity: 'just now' }
-          : entry,
-      ),
-    )
-  }, [])
+  const rebind = useCallback((guildAgentId: string, newAgentRecordId: string) => {
+    updateRegistryEntry(guildAgentId, { agentRecordId: newAgentRecordId, lastActivity: 'just now' })
+  }, [updateRegistryEntry])
 
   const updateConnectionStatus = useCallback((guildAgentId: string, status: ConnectionStatus) => {
-    setRegistry(prev =>
-      prev.map(entry =>
-        entry.guildAgentId === guildAgentId
-          ? { ...entry, connectionStatus: status, lastActivity: 'just now' }
-          : entry,
-      ),
-    )
-  }, [])
+    updateRegistryEntry(guildAgentId, { connectionStatus: status, lastActivity: 'just now' })
+  }, [updateRegistryEntry])
 
   return (
     <RegistryContext.Provider value={{ registry, getEntry, rebind, updateConnectionStatus }}>

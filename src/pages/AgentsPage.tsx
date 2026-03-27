@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { agents } from '../data/agents'
+import { useData } from '../contexts/DataContext'
 import type { AgentStatus } from '../types'
 import { cn } from '../lib/utils'
 import PageHeader from '../components/ui/PageHeader'
@@ -27,6 +27,7 @@ const modelOptions = [
 interface FormErrors { name?: string; role?: string; specialties?: string }
 
 export default function AgentsPage() {
+  const { agents } = useData()
   const [filter, setFilter] = useState<AgentStatus | 'all'>('all')
   const [showCreate, setShowCreate] = useState(false)
 

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useRegistry } from '../contexts/RegistryContext'
-import { agents } from '../data/agents'
-import { routingRules, availableOpenclawAgents } from '../data/registry'
+import { useData } from '../contexts/DataContext'
 import { cn, connectionStatusColor, connectionStatusLabel, routingRoleColor } from '../lib/utils'
 import type { AgentRoutingRole } from '../types'
 import PageHeader from '../components/ui/PageHeader'
@@ -11,8 +10,9 @@ import StatusChip from '../components/ui/StatusChip'
 
 export default function RegistryPage() {
   const { registry, rebind } = useRegistry()
+  const { agents, routingRules } = useData()
   const [rebindTarget, setRebindTarget] = useState<string | null>(null)
-  const [selectedOcAgent, setSelectedOcAgent] = useState('')
+  const [selectedAgentRecord, setSelectedAgentRecord] = useState('')
   const [roleFilter, setRoleFilter] = useState<AgentRoutingRole | 'all'>('all')
 
   const filtered = roleFilter === 'all' ? registry : registry.filter(e => e.role === roleFilter)
@@ -21,10 +21,10 @@ export default function RegistryPage() {
   const disconnectedCount = registry.filter(e => e.connectionStatus === 'disconnected').length
 
   const handleRebind = (guildAgentId: string) => {
-    if (!selectedOcAgent) return
-    rebind(guildAgentId, selectedOcAgent)
+    if (!selectedAgentRecord) return
+    rebind(guildAgentId, selectedAgentRecord)
     setRebindTarget(null)
-    setSelectedOcAgent('')
+    setSelectedAgentRecord('')
   }
 
   return (
@@ -132,8 +132,8 @@ export default function RegistryPage() {
                 {/* Mapping Info */}
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-3 text-[10px]">
                   <div>
-                    <p className="font-label uppercase tracking-widest text-on-surface-variant/40 mb-0.5">OpenClaw ID</p>
-                    <p className="text-white font-mono text-[9px]">{entry.openclawAgentId}</p>
+                    <p className="font-label uppercase tracking-widest text-on-surface-variant/40 mb-0.5">Agent Record</p>
+                    <p className="text-white font-mono text-[9px]">{entry.agentRecordId}</p>
                   </div>
                   <div>
                     <p className="font-label uppercase tracking-widest text-on-surface-variant/40 mb-0.5">Session</p>
@@ -156,7 +156,7 @@ export default function RegistryPage() {
                     {entry.role}
                   </span>
                   <button
-                    onClick={() => { setRebindTarget(isRebinding ? null : entry.guildAgentId); setSelectedOcAgent('') }}
+                    onClick={() => { setRebindTarget(isRebinding ? null : entry.guildAgentId); setSelectedAgentRecord('') }}
                     className={cn(
                       'px-3 py-2 rounded-lg text-[10px] font-bold font-label uppercase tracking-wider transition-all border',
                       isRebinding
@@ -177,21 +177,15 @@ export default function RegistryPage() {
                       <Icon name="swap_horiz" size="sm" className="text-secondary" />
                       <span className="text-xs text-on-surface-variant">Rebind to:</span>
                     </div>
-                    <select
-                      value={selectedOcAgent}
-                      onChange={e => setSelectedOcAgent(e.target.value)}
-                      className="flex-1 bg-surface-container-lowest rounded-lg px-3 py-2 text-xs text-on-surface border border-outline-variant/15 focus:border-secondary/60 focus:outline-none transition-colors cursor-pointer max-w-sm"
-                    >
-                      <option value="">Select OpenClaw agent...</option>
-                      {availableOpenclawAgents.map(oc => (
-                        <option key={oc.id} value={oc.id}>
-                          {oc.label} ({oc.id}) — {oc.role}
-                        </option>
-                      ))}
-                    </select>
+                    <input
+                      value={selectedAgentRecord}
+                      onChange={e => setSelectedAgentRecord(e.target.value)}
+                      placeholder="Enter agent record ID..."
+                      className="flex-1 bg-surface-container-lowest rounded-lg px-3 py-2 text-xs text-on-surface border border-outline-variant/15 focus:border-secondary/60 focus:outline-none transition-colors max-w-sm"
+                    />
                     <button
                       onClick={() => handleRebind(entry.guildAgentId)}
-                      disabled={!selectedOcAgent}
+                      disabled={!selectedAgentRecord}
                       className="px-4 py-2 rounded-lg bg-primary-container text-white text-[10px] font-bold uppercase tracking-wider hover:brightness-110 transition-all glow-violet disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Confirm Rebind

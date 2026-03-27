@@ -3,7 +3,7 @@ import type { AgentRegistryEntry, RoutingRule } from '../types'
 export const agentRegistry: AgentRegistryEntry[] = [
   {
     guildAgentId: 'cipher-7',
-    openclawAgentId: 'oc-agent-scout-01',
+    agentRecordId: 'cipher-7',
     displayName: 'CIPHER-7',
     role: 'scout',
     defaultSessionMode: 'autonomous',
@@ -14,7 +14,7 @@ export const agentRegistry: AgentRegistryEntry[] = [
   },
   {
     guildAgentId: 'pulse',
-    openclawAgentId: 'oc-agent-operator-02',
+    agentRecordId: 'pulse',
     displayName: 'PULSE',
     role: 'operator',
     defaultSessionMode: 'supervised',
@@ -25,7 +25,7 @@ export const agentRegistry: AgentRegistryEntry[] = [
   },
   {
     guildAgentId: 'nova-3',
-    openclawAgentId: 'oc-agent-analyst-01',
+    agentRecordId: 'nova-3',
     displayName: 'NOVA-3',
     role: 'analyst',
     defaultSessionMode: 'autonomous',
@@ -36,7 +36,7 @@ export const agentRegistry: AgentRegistryEntry[] = [
   },
   {
     guildAgentId: 'sentinel-12',
-    openclawAgentId: 'oc-agent-operator-03',
+    agentRecordId: 'sentinel-12',
     displayName: 'SENTINEL-12',
     role: 'operator',
     defaultSessionMode: 'supervised',
@@ -47,7 +47,7 @@ export const agentRegistry: AgentRegistryEntry[] = [
   },
   {
     guildAgentId: 'echo-9',
-    openclawAgentId: 'oc-agent-scout-02',
+    agentRecordId: 'echo-9',
     displayName: 'ECHO-9',
     role: 'scout',
     defaultSessionMode: 'autonomous',
@@ -58,7 +58,7 @@ export const agentRegistry: AgentRegistryEntry[] = [
   },
   {
     guildAgentId: 'wraith-5',
-    openclawAgentId: 'oc-agent-scout-03',
+    agentRecordId: 'wraith-5',
     displayName: 'WRAITH-5',
     role: 'scout',
     defaultSessionMode: 'autonomous',
@@ -69,7 +69,7 @@ export const agentRegistry: AgentRegistryEntry[] = [
   },
   {
     guildAgentId: 'oracle-1',
-    openclawAgentId: 'oc-agent-analyst-02',
+    agentRecordId: 'oracle-1',
     displayName: 'ORACLE-1',
     role: 'analyst',
     defaultSessionMode: 'autonomous',
@@ -80,7 +80,7 @@ export const agentRegistry: AgentRegistryEntry[] = [
   },
   {
     guildAgentId: 'vex-4',
-    openclawAgentId: 'oc-agent-negotiator-01',
+    agentRecordId: 'vex-4',
     displayName: 'VEX-4',
     role: 'negotiator',
     defaultSessionMode: 'manual',
@@ -134,17 +134,5 @@ export const routingRules: RoutingRule[] = [
   },
 ]
 
-/** Available OpenClaw agent IDs that can be bound to guild agents */
-export const availableOpenclawAgents = [
-  { id: 'oc-agent-scout-01', label: 'Scout Alpha', role: 'scout' as const },
-  { id: 'oc-agent-scout-02', label: 'Scout Bravo', role: 'scout' as const },
-  { id: 'oc-agent-scout-03', label: 'Scout Charlie', role: 'scout' as const },
-  { id: 'oc-agent-operator-01', label: 'Operator Delta', role: 'operator' as const },
-  { id: 'oc-agent-operator-02', label: 'Operator Echo', role: 'operator' as const },
-  { id: 'oc-agent-operator-03', label: 'Operator Foxtrot', role: 'operator' as const },
-  { id: 'oc-agent-analyst-01', label: 'Analyst Golf', role: 'analyst' as const },
-  { id: 'oc-agent-analyst-02', label: 'Analyst Hotel', role: 'analyst' as const },
-  { id: 'oc-agent-negotiator-01', label: 'Negotiator India', role: 'negotiator' as const },
-  { id: 'oc-agent-negotiator-02', label: 'Negotiator Juliet', role: 'negotiator' as const },
-  { id: 'oc-agent-general-01', label: 'General Kilo', role: 'general' as const },
-]
+/** Available backend agent records that can be bound to guild agents */
+export { } // agent records are fetched from /api/agents at runtime

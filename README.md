@@ -1,27 +1,32 @@
-# Agent Guild — Command Center
+# Agent Guild
 
-A futuristic web dashboard for managing a guild of specialized AI agents. Built as a dark cinematic mission control interface with glassmorphism, Electric Violet + Neon Cyan accents, and a tactical sci-fi aesthetic.
+A mission-control dashboard for orchestrating autonomous AI agents. Monitor trust scores, dispatch missions, chat with agents in real time, and escalate to voice calls -- all from one tactical command center.
 
-## What is Agent Guild?
+Built with React 19, Express, TrueFoundry AI Gateway, Auth0, Bland.ai, and Airbyte.
 
-Agent Guild is a command center for orchestrating specialized AI agents. Think of it as mission control for an elite squad of autonomous intelligence units — each with their own role, trust score, specialty, and mission history.
+## Features
 
-The interface lets operators:
-- Monitor guild-wide health, active missions, and trust metrics
-- View and manage individual AI agents with trust scoring
-- Create and track missions across the fleet
-- Communicate with agents via real-time comms
-- Initialize new agents with configurable autonomy levels
-- Audit trust analytics and compliance across the guild
-- Execute critical operator overrides
+- **Dashboard** -- guild-wide health, active missions, trust metrics, agent roster
+- **Agent Management** -- view agents with trust scores, specialties, status, and mission history
+- **Mission Board** -- create, assign, and track missions with priority and progress
+- **Comms** -- real-time streaming chat with agents via TrueFoundry AI Gateway
+- **Voice Escalation** -- trigger phone calls to agents via Bland.ai pathways
+- **Trust Ledger** -- weekly trust trends, risk assessment, per-agent audit logs
+- **Registry** -- bind guild agents to external agent IDs (Openclaw)
+- **Operator Panel** -- system alerts, approval queue, critical overrides
+- **Data Pipelines** -- Airbyte integration for syncing external data sources
+- **Auth** -- Auth0 login with protected routes and user profiles
 
 ## Tech Stack
 
-- **Vite** + **React 19** + **TypeScript**
-- **Tailwind CSS v4** (with `@tailwindcss/vite`)
-- **React Router v7** for client-side routing
-- **Material Symbols** for iconography
-- **Space Grotesk** + **Inter** typography
+| Layer | Tech |
+|-------|------|
+| Frontend | React 19, TypeScript 5.9, Vite 8, Tailwind CSS v4, React Router v7 |
+| Backend | Express 5, Node.js, TrueFoundry AI Gateway (OpenAI-compatible) |
+| Auth | Auth0 SPA SDK |
+| Voice | Bland.ai (call launch + webhook receiver) |
+| Data | Airbyte API |
+| Design | Space Grotesk + Inter, glassmorphism, Electric Violet / Neon Cyan palette |
 
 ## Quick Start
 
@@ -29,96 +34,105 @@ The interface lets operators:
 git clone https://github.com/EcosystemNetwork/Agent-Guild.git
 cd Agent-Guild
 npm install
+cp .env.example .env   # fill in your API keys
+```
+
+**Frontend only** (mock data, no backend needed):
+
+```bash
 npm run dev
+```
+
+**Full stack** (frontend + API gateway):
+
+```bash
+npm run dev:all
 ```
 
 Open [http://localhost:5173](http://localhost:5173)
 
-## Route Map
+## Environment Variables
+
+Copy `.env.example` and fill in:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `TRUEFOUNDRY_BASE_URL` | Yes | TrueFoundry LLM Gateway endpoint |
+| `TRUEFOUNDRY_API_KEY` | Yes | API key for TrueFoundry |
+| `TRUEFOUNDRY_MODEL` | No | Model ID (default: `openai-main/gpt-4o-mini`) |
+| `VITE_AUTH0_DOMAIN` | Yes | Auth0 tenant domain |
+| `VITE_AUTH0_CLIENT_ID` | Yes | Auth0 SPA client ID |
+| `VITE_AUTH0_AUDIENCE` | No | Auth0 API audience |
+| `BLAND_API_KEY` | No | Bland.ai key (voice calls; simulation mode if unset) |
+| `BLAND_PATHWAY_ID` | No | Default Bland pathway |
+| `WEBHOOK_BASE_URL` | No | Public URL for Bland webhooks (e.g. ngrok) |
+| `VITE_AIRBYTE_TOKEN` | No | Airbyte API bearer token |
+| `PORT` | No | Backend port (default: 3001) |
+
+## Routes
 
 | Route | Page | Description |
 |-------|------|-------------|
-| `/` | Dashboard | Guild status, active missions, trust score, agent roster grid |
-| `/missions` | Mission Board | All missions with detail panel, progress tracking, priority |
-| `/chat` | Comms | Real-time mission chat with channel list and agent presence |
-| `/agents/new` | Create Agent | Multi-step agent initialization form with live preview |
-| `/analytics/trust` | Trust Ledger | Trust analytics, weekly trends, agent breakdown table |
-| `/operator` | Operator Panel | Runtime cluster, approval queue, critical overrides |
+| `/login` | Login | Auth0 authentication |
+| `/` | Dashboard | Guild status, active missions, trust score, agent roster |
+| `/agents` | Agents | Agent cards with trust scores, specialties, status |
+| `/missions` | Mission Board | Mission tracking with priority and progress |
+| `/comms` | Comms | Streaming chat with AI agents |
+| `/trust` | Trust Ledger | Trust analytics, weekly trends, agent breakdown |
+| `/operator` | Operator Panel | Alerts, approval queue, critical overrides |
+| `/registry` | Registry | Bind guild agents to external IDs |
+| `/profile` | Profile | User profile and settings |
+
+## API Endpoints
+
+The Express backend on port 3001 proxies requests to TrueFoundry and Bland.ai:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/chat/health` | Gateway health check |
+| POST | `/api/chat/message` | Send message (non-streaming) |
+| POST | `/api/chat/stream` | Send message (SSE streaming) |
+| GET | `/api/auth/me` | Validate token and return user profile |
+| POST | `/api/voice/call` | Launch a Bland.ai phone call |
+| POST | `/api/webhooks/bland` | Receive Bland call completion events |
+| GET | `/api/voice/events` | Poll for voice call events |
 
 ## Project Structure
 
 ```
 src/
-  components/        # Shared UI components
-    ui/              # Primitives (Icon, GlassPanel, StatusChip, etc.)
-    Sidebar.tsx      # Collapsible nav sidebar
-    Topbar.tsx       # Header with stats, search, profile
-    AgentCard.tsx    # Agent roster card
-    ActivityRail.tsx # Live activity feed sidebar
-  layouts/
-    AppLayout.tsx    # Shell layout with sidebar + topbar + outlet
-  pages/
-    Dashboard.tsx    # / route
-    Missions.tsx     # /missions route
-    Chat.tsx         # /chat route
-    CreateAgent.tsx  # /agents/new route
-    TrustAnalytics.tsx # /analytics/trust route
-    Operator.tsx     # /operator route
-  data/              # Mock JSON fixtures
-    agents.ts        # 8 agents with trust scores, specialties
-    missions.ts      # 8 missions with progress, priority
-    activity.ts      # Activity feed events + guild metrics
-    chat.ts          # Chat messages
-    operator.ts      # Operator alerts
-    trust.ts         # Trust metrics per agent
-  types/
-    index.ts         # All TypeScript interfaces
-  lib/
-    utils.ts         # cn(), color maps, formatters
-  styles/
-    index.css        # Tailwind + design tokens + glass utilities
+  pages/              # Route pages
+  components/         # Shared UI (Sidebar, Topbar, AgentCard, etc.)
+    ui/               # Primitives (Icon, GlassPanel, StatusChip)
+  contexts/           # React context providers
+    RegistryContext    # Agent registry binding
+    MissionContext     # Mission management
+    AirbyteContext     # Data pipeline integration
+  services/           # Integration clients
+    gateway.ts        # TrueFoundry AI Gateway
+    bland.ts          # Voice escalation
+    airbyte.ts        # Data pipelines
+    missionRunner.ts  # Mission execution
+  data/               # Mock fixtures
+  types/              # TypeScript interfaces
+  layouts/            # App shell layout
+  hooks/              # Custom React hooks
+  lib/                # Utilities (cn(), formatters)
+  styles/             # Tailwind + design tokens
+server/
+  index.ts            # Express API gateway
 ```
 
-## Design System
+## Scripts
 
-All design tokens extracted from the Stitch-generated design system in `.stitch/DESIGN.md`:
-
-- **Surfaces**: 7-tier tonal hierarchy from `#0A0A0F` to `#39383e`
-- **Primary**: Electric Violet `#7c3aed` / `#d2bbff`
-- **Secondary**: Neon Cyan `#4cd7f6` / `#03b5d3`
-- **Status**: Emerald (online), Amber (busy), Rose (offline)
-- **Glass panels**: `backdrop-blur(20px)` + semi-transparent backgrounds
-- **Typography**: Space Grotesk headlines, Inter body, uppercase labels
-- **No hard borders**: Tonal shifts and ghost borders only
-
-## Stitch Designs
-
-Original high-fidelity screens generated by Stitch are in `.stitch/designs/`:
-- 8 HTML screens (self-contained, open in any browser)
-- 8 PNG screenshots
-
-## Roadmap
-
-### Phase 1: "Looks Real" (current)
-- [x] React shell with sidebar, topbar, responsive layout
-- [x] All 6 routes with full UI
-- [x] Mocked data for agents, missions, activity, trust
-- [x] Design system tokens codified in Tailwind
-- [x] Mobile-responsive navigation
-
-### Phase 2: "Acts Real"
-- [ ] Create mission flow (form + validation)
-- [ ] Assign agents to missions
-- [ ] Live activity feed simulation (timed events)
-- [ ] Trust score changes from actions
-- [ ] Agent detail drawer/modal
-
-### Phase 3: "Demo-Ready"
-- [ ] External integration (e.g. webhook endpoint)
-- [ ] Operator action execution (lockdown, recalc)
-- [ ] Export/publish mission reports
-- [ ] Deploy to Vercel
-- [ ] Dark/light mode toggle
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Vite dev server (frontend only) |
+| `npm run dev:server` | Express backend only |
+| `npm run dev:all` | Frontend + backend concurrently |
+| `npm run build` | TypeScript compile + Vite production build |
+| `npm run lint` | ESLint |
+| `npm run preview` | Preview production build |
 
 ## License
 

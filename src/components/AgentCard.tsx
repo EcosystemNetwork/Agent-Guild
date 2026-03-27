@@ -98,7 +98,7 @@ export default function AgentCard({ agent, compact }: AgentCardProps) {
         </div>
       </div>
 
-      {/* OpenClaw Registry Binding */}
+      {/* Agent Registry Binding */}
       {entry && (
         <div className="pt-2 border-t border-white/5 space-y-2">
           <div className="flex items-center justify-between">
@@ -113,7 +113,7 @@ export default function AgentCard({ agent, compact }: AgentCardProps) {
           <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[9px]">
             <div className="flex justify-between">
               <span className="text-on-surface-variant/50">Target</span>
-              <span className="text-white font-mono text-[8px]">{entry.openclawAgentId.slice(-8)}</span>
+              <span className="text-white font-mono text-[8px]">{entry.agentRecordId}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-on-surface-variant/50">Session</span>

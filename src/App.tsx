@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { DataProvider } from './contexts/DataContext'
 import { RegistryProvider } from './contexts/RegistryContext'
 import { MissionProvider } from './contexts/MissionContext'
 import { AirbyteProvider } from './contexts/AirbyteContext'
@@ -25,13 +26,15 @@ export default function App() {
         <Route
           element={
             <ProtectedRoute>
-              <RegistryProvider>
-                <MissionProvider>
-                  <AirbyteProvider>
-                    <AppLayout />
-                  </AirbyteProvider>
-                </MissionProvider>
-              </RegistryProvider>
+              <DataProvider>
+                <RegistryProvider>
+                  <MissionProvider>
+                    <AirbyteProvider>
+                      <AppLayout />
+                    </AirbyteProvider>
+                  </MissionProvider>
+                </RegistryProvider>
+              </DataProvider>
             </ProtectedRoute>
           }
         >

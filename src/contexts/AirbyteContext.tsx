@@ -16,21 +16,11 @@ import {
   listConnections,
   triggerSync,
   getJobStatus,
-  fetchSyncedRecords,
+  fetchMissionContext,
 } from '../services/airbyte'
 
-// ── Static mission→connection mapping ──
-// In production this would live in a config table. For now, every mission
-// gets context from both sources.
-
-// Live Airbyte connector IDs
-const GITHUB_CONNECTOR_ID = 'f4ba487b-8d44-492e-8f2d-4da105540d35'
-
-const MISSION_CONNECTION_MAP: Record<string, string[]> = {
-  'MSN-2847': ['conn-threat-intel', 'conn-infra-cmdb', GITHUB_CONNECTOR_ID],
-  'MSN-2844': ['conn-threat-intel', 'conn-infra-cmdb', GITHUB_CONNECTOR_ID],
-  'MSN-2842': ['conn-threat-intel', 'conn-infra-cmdb', GITHUB_CONNECTOR_ID],
-}
+// Mission IDs that should have context pre-fetched
+const KNOWN_MISSIONS = ['MSN-2847', 'MSN-2844', 'MSN-2842']
 
 const POLL_INTERVAL = 60_000 // refresh connections list every 60s
 
@@ -74,40 +64,23 @@ export function AirbyteProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(pollRef.current)
   }, [loadConnections])
 
-  // Pre-fetch context for mapped missions once connections load
+  // Fetch context from the server for a mission
+  const fetchContextForMission = useCallback(async (missionId: string) => {
+    try {
+      const contexts = await fetchMissionContext(missionId)
+      setMissionContexts(prev => ({ ...prev, [missionId]: contexts }))
+    } catch (err) {
+      console.error(`[airbyte] Failed to fetch context for ${missionId}:`, err)
+    }
+  }, [])
+
+  // Pre-fetch context for known missions once connections load
   useEffect(() => {
     if (connections.length === 0) return
-    for (const missionId of Object.keys(MISSION_CONNECTION_MAP)) {
+    for (const missionId of KNOWN_MISSIONS) {
       fetchContextForMission(missionId)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connections])
-
-  const fetchContextForMission = async (missionId: string) => {
-    const connIds = MISSION_CONNECTION_MAP[missionId] ?? []
-    if (connIds.length === 0) return
-
-    const contexts: AirbyteMissionContext[] = await Promise.all(
-      connIds.map(async connId => {
-        const conn = connections.find(c => c.connectionId === connId)
-        const records = await fetchSyncedRecords(connId, missionId)
-        const lastSync = conn?.lastSyncAt ?? null
-        const freshnessMs = lastSync ? Date.now() - new Date(lastSync).getTime() : Infinity
-
-        return {
-          missionId,
-          connectionId: connId,
-          sourceName: conn?.sourceName ?? connId,
-          syncStatus: conn?.lastSyncStatus ?? 'pending',
-          lastSyncAt: lastSync,
-          records,
-          freshnessMs,
-        }
-      }),
-    )
-
-    setMissionContexts(prev => ({ ...prev, [missionId]: contexts }))
-  }
+  }, [connections, fetchContextForMission])
 
   const getMissionContext = useCallback(
     (missionId: string): AirbyteMissionContext[] => {
@@ -120,13 +93,22 @@ export function AirbyteProvider({ children }: { children: ReactNode }) {
     async (missionId: string) => {
       await fetchContextForMission(missionId)
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [connections],
+    [fetchContextForMission],
   )
 
   const triggerMissionSync = useCallback(
     async (missionId: string): Promise<AirbyteSyncJob[]> => {
-      const connIds = MISSION_CONNECTION_MAP[missionId] ?? []
+      // Get the connection IDs from the current context (server owns the mapping)
+      const ctx = missionContexts[missionId] ?? []
+      const connIds = ctx.map(c => c.connectionId)
+      if (connIds.length === 0) {
+        // Fallback: trigger a context fetch first to discover connections
+        await fetchContextForMission(missionId)
+        const refreshed = missionContexts[missionId] ?? []
+        if (refreshed.length === 0) return []
+        connIds.push(...refreshed.map(c => c.connectionId))
+      }
+
       const jobs = await Promise.all(connIds.map(id => triggerSync(id)))
 
       // Track active syncs
@@ -151,7 +133,7 @@ export function AirbyteProvider({ children }: { children: ReactNode }) {
         }
         if (allDone) {
           clearInterval(syncPollRef.current)
-          // Refresh context after sync completes
+          // Refresh connections and context from the server after sync completes
           await loadConnections()
           await fetchContextForMission(missionId)
         }
@@ -159,8 +141,7 @@ export function AirbyteProvider({ children }: { children: ReactNode }) {
 
       return jobs
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [connections, loadConnections],
+    [missionContexts, fetchContextForMission, loadConnections],
   )
 
   return (
