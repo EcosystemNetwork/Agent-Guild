@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agent Guild | Command Center</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "surface-dim": "#131318",
+                "secondary-container": "#03b5d3",
+                "on-secondary-fixed-variant": "#004e5c",
+                "on-primary-fixed-variant": "#5a00c6",
+                "on-primary-fixed": "#25005a",
+                "inverse-primary": "#732ee4",
+                "error-container": "#93000a",
+                "surface-container-high": "#2a292f",
+                "tertiary-fixed-dim": "#c6c4df",
+                "secondary-fixed-dim": "#4cd7f6",
+                "surface-container-lowest": "#0e0e13",
+                "background": "#131318",
+                "surface-variant": "#35343a",
+                "on-error": "#690005",
+                "error": "#ffb4ab",
+                "on-tertiary-fixed-variant": "#45455b",
+                "inverse-on-surface": "#303036",
+                "on-surface": "#e4e1e9",
+                "outline-variant": "#4a4455",
+                "surface-container-highest": "#35343a",
+                "surface-container-low": "#1b1b20",
+                "outline": "#958da1",
+                "on-error-container": "#ffdad6",
+                "tertiary-fixed": "#e2e0fc",
+                "secondary-fixed": "#acedff",
+                "surface-container": "#1f1f25",
+                "surface-tint": "#d2bbff",
+                "on-surface-variant": "#ccc3d8",
+                "secondary": "#4cd7f6",
+                "on-tertiary-fixed": "#1a1a2e",
+                "on-secondary": "#003640",
+                "primary-fixed-dim": "#d2bbff",
+                "on-tertiary-container": "#e5e2fe",
+                "surface": "#131318",
+                "on-secondary-fixed": "#001f26",
+                "on-primary": "#3f008e",
+                "surface-bright": "#39383e",
+                "primary-container": "#7c3aed",
+                "primary-fixed": "#eaddff",
+                "tertiary": "#c6c4df",
+                "primary": "#d2bbff",
+                "on-secondary-container": "#00424e",
+                "inverse-surface": "#e4e1e9",
+                "tertiary-container": "#65647c",
+                "on-primary-container": "#ede0ff",
+                "on-background": "#e4e1e9",
+                "on-tertiary": "#2f2e43"
+              },
+              fontFamily: {
+                "headline": ["Space Grotesk"],
+                "body": ["Inter"],
+                "label": ["Space Grotesk"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .scanline-overlay {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 4px, 3px 100%;
+            pointer-events: none;
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            background: rgba(27, 27, 32, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .agent-card-glow:hover {
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-white overflow-hidden h-screen flex">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 h-full z-50 flex flex-col w-[80px] bg-[#1b1b20]/80 backdrop-blur-xl border-r border-white/10 shadow-[32px_0_32px_rgba(19,19,24,0.08)]">
+<div class="flex flex-col items-center py-6 space-y-8 h-full">
+<!-- Brand Logo Area -->
+<div class="p-2 bg-primary-container/10 rounded-lg">
+<span class="material-symbols-outlined text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.5)] text-3xl">shield</span>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col items-center space-y-4 w-full px-2">
+<!-- Dashboard Active -->
+<button class="w-12 h-12 flex items-center justify-center rounded-lg bg-[#7C3AED]/20 text-[#7C3AED] border-r-2 border-[#7C3AED] transition-all duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined">dashboard</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined">smart_toy</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined">assignment</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined">insights</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined">security</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined">forum</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 scale-95 active:scale-90">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</nav>
+<!-- Footer Action -->
+<div class="mt-auto pb-6">
+<button class="w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-high border border-outline-variant/20 hover:border-secondary/40 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">account_circle</span>
+</button>
+</div>
+</div>
+</aside>
+<div class="flex flex-col flex-1 ml-[80px] overflow-hidden">
+<!-- TopNavBar (Shared Component) -->
+<header class="flex justify-between items-center w-full px-6 py-3 z-40 sticky top-0 bg-[#131318]/50 backdrop-blur-md border-b border-white/5 shadow-inner-glow">
+<div class="flex items-center space-x-8">
+<h1 class="text-xl font-black text-white tracking-widest font-headline">AGENT GUILD</h1>
+<div class="hidden md:flex items-center space-x-6">
+<div class="flex items-center space-x-2 px-3 py-1 rounded-full bg-surface-container-low border border-white/5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+<span class="font-label text-xs uppercase tracking-[0.05em] text-[#4CD7F6]">Missions: 24</span>
+</div>
+<div class="flex items-center space-x-2 px-3 py-1 rounded-full bg-surface-container-low border border-white/5">
+<span class="font-label text-xs uppercase tracking-[0.05em] text-[#ccc3d8]">Agents: 12</span>
+</div>
+<div class="flex items-center space-x-2 px-3 py-1 rounded-full bg-surface-container-low border border-white/5">
+<span class="font-label text-xs uppercase tracking-[0.05em] text-[#ccc3d8]">Uptime: 99.9%</span>
+</div>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-2 mr-4">
+<button class="p-2 text-on-surface-variant hover:text-white transition-colors">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-white transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+</div>
+<div class="flex items-center space-x-3 pl-4 border-l border-white/10">
+<div class="text-right">
+<p class="font-headline font-bold text-sm tracking-tight text-white leading-none">Commander Kai</p>
+<p class="font-label text-[10px] uppercase text-secondary/70 tracking-widest mt-1">Lvl 9 Administrator</p>
+</div>
+<img alt="Commander Kai Avatar" class="w-10 h-10 rounded-lg object-cover ring-2 ring-primary/20" data-alt="Close-up portrait of a tech professional in a dark studio setting with soft blue cinematic lighting reflecting on facial features" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8Nrvm7XFHgZIzWUYTllKYpFZbfouRO6bCmUZACzaBflgjBJla23Kqbvam6JgGYdS45Bq6MoHSMS3e83GDm1zDE79o99mBfB-PAArppBNusUIYHda2MtecL4IfKAYRIShtGBFMVlOmOeWnrXAt07LWzJTT6i34wk423Nq90vNbVM6Pl854fDPvyUY3cU51dYaSHKg5uNuVmB9gJ4-jIMTYcL2bNcpnJl6LftphNRyzycA1GKqy7JXvMhhMcdKfRlMwKtjvPdJTzBg"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto overflow-x-hidden relative flex">
+<div class="scanline-overlay fixed inset-0 z-0"></div>
+<!-- Content Canvas -->
+<div class="flex-1 p-6 space-y-8 relative z-10 max-w-[1200px]">
+<!-- Hero Metric Cards (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Guild Status -->
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between overflow-hidden relative">
+<div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-3xl -mr-16 -mt-16"></div>
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant">System Health</p>
+<h3 class="font-headline font-bold text-lg mt-1">Guild Status</h3>
+</div>
+<span class="material-symbols-outlined text-emerald-500">sensors</span>
+</div>
+<div class="mt-8 flex items-baseline space-x-3">
+<span class="text-emerald-500 font-headline font-black text-3xl tracking-tighter">OPERATIONAL</span>
+</div>
+<div class="mt-4 flex items-center space-x-2">
+<div class="flex space-x-0.5 h-6 items-end">
+<div class="w-1 bg-emerald-500/30 h-1/2"></div>
+<div class="w-1 bg-emerald-500/40 h-3/4"></div>
+<div class="w-1 bg-emerald-500/50 h-2/3"></div>
+<div class="w-1 bg-emerald-500/60 h-full"></div>
+<div class="w-1 bg-emerald-500/50 h-3/4"></div>
+<div class="w-1 bg-emerald-500 h-5/6"></div>
+</div>
+<span class="text-[10px] font-label text-emerald-500/80 uppercase">All systems green</span>
+</div>
+</div>
+<!-- Active Missions -->
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between overflow-hidden relative">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/5 blur-3xl -mr-16 -mt-16"></div>
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant">Deployment</p>
+<h3 class="font-headline font-bold text-lg mt-1">Active Missions</h3>
+</div>
+<span class="material-symbols-outlined text-secondary">explore</span>
+</div>
+<div class="mt-6 flex items-center justify-between">
+<div class="relative w-20 h-20">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-surface-container-highest" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-width="6"></circle>
+<circle class="text-secondary drop-shadow-[0_0_8px_rgba(76,215,246,0.3)]" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-dasharray="213.6" stroke-dashoffset="42.7" stroke-width="6"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center font-headline font-bold text-xl">12</div>
+</div>
+<div class="text-right">
+<p class="text-3xl font-headline font-black tracking-tighter">12<span class="text-on-surface-variant text-lg">/15</span></p>
+<p class="text-[10px] font-label text-secondary uppercase tracking-widest mt-1">Capacity: 80%</p>
+</div>
+</div>
+</div>
+<!-- Trust Score -->
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between overflow-hidden relative">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -mr-16 -mt-16"></div>
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label text-[10px] uppercase tracking-[0.1em] text-on-surface-variant">Reliability</p>
+<h3 class="font-headline font-bold text-lg mt-1">Total Trust Score</h3>
+</div>
+<span class="material-symbols-outlined text-primary">verified_user</span>
+</div>
+<div class="mt-8 flex items-baseline space-x-2">
+<span class="font-headline font-black text-4xl tracking-tighter text-white">97.4</span>
+<span class="text-emerald-500 font-label text-xs font-bold">+1.2%</span>
+</div>
+<div class="mt-4 w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-full rounded-full w-[97.4%] shadow-[0_0_12px_rgba(124,58,237,0.4)]"></div>
+</div>
+</div>
+</div>
+<!-- Agent Roster Grid -->
+<section>
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="font-headline font-bold text-xl tracking-tight">Agent Roster</h2>
+<p class="font-body text-sm text-on-surface-variant">Active personnel and tactical units</p>
+</div>
+<button class="font-label text-xs uppercase tracking-widest text-primary hover:text-white transition-colors flex items-center">
+                            View All <span class="material-symbols-outlined text-sm ml-1">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- Agent Card 1: CIPHER-7 -->
+<div class="glass-panel p-5 rounded-xl agent-card-glow transition-all duration-300 group">
+<div class="flex items-start space-x-4">
+<div class="relative">
+<div class="w-16 h-16 rounded-lg overflow-hidden ring-2 ring-emerald-500/40 p-1 bg-background">
+<img alt="CIPHER-7" class="w-full h-full object-cover rounded-md opacity-80 grayscale group-hover:grayscale-0 transition-all" data-alt="Cyberpunk style female profile portrait with glowing neon interfaces and tech goggles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8otflQCTWM7LN0OmL2bfsqXvkaJ3j-BxNJkLdBosQXo36SzacV58RJYUDuHIuy-g4CHTQTUd-9ETIm1M6jHR72oO9wi4DEoKkCdqcuPK6bvwOHQENE2KGm03NKpIPZEOuJI_FehCk5sHtFBLJbMzOUJzTe4mp_m4ZmIEkBrciCQbY2zUNWeuBwUUAxcIxeEaDRKrwAMuf4wq68aLhuEOVxgUrbvVZrTvywi1RzXXmYTPE3j0G0PR0tHHUbDnGBw8LPDGH94nkHy0"/>
+</div>
+<span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-surface-container shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline font-bold text-base tracking-tight text-white leading-none">CIPHER-7</h4>
+<p class="text-xs text-on-surface-variant mt-1">Infiltration Specialist</p>
+</div>
+<span class="text-[10px] font-label font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">ACTIVE</span>
+</div>
+<div class="flex flex-wrap gap-2 mt-3">
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">Neural Link</span>
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">Stealth</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+<div class="w-2/3">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-label text-on-surface-variant">TRUST SCORE</span>
+<span class="text-[10px] font-headline font-bold">98.2</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full">
+<div class="bg-primary h-full w-[98.2%]"></div>
+</div>
+</div>
+<div class="flex space-x-1">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">terminal</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">monitoring</span></button>
+</div>
+</div>
+</div>
+<!-- Agent Card 2: NOVA-3 -->
+<div class="glass-panel p-5 rounded-xl agent-card-glow transition-all duration-300 group">
+<div class="flex items-start space-x-4">
+<div class="relative">
+<div class="w-16 h-16 rounded-lg overflow-hidden ring-2 ring-secondary/40 p-1 bg-background">
+<img alt="NOVA-3" class="w-full h-full object-cover rounded-md opacity-80 grayscale group-hover:grayscale-0 transition-all" data-alt="Digital art of a sophisticated android with translucent synthetic skin and internal fiber-optic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbQDCA_mR46OsEuz_EB1VdGnSfdn9V859V1VOIp53intOI9T1N5RDSSfGCMPlTqXFgIPvsDkyNl9f6pHLhc20wlLoizoOuJP75gTtLJmL2kQD3o6Ocq4CvLDLQ3b_E0xBsTOjfNI9RXnaWxY-vaXHoxKkcaTLMZo_87U42xUHji3bV4uIMAirXkOz4bBZF83b7wM7NwHJ3Eb52_cntAUiOu3T48K6rbGWoalJtteoTbwCwuRjltC_LfTB3RpWv0CTSrGUXLPOTe1E"/>
+</div>
+<span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-secondary border-2 border-surface-container shadow-[0_0_8px_rgba(76,215,246,0.5)]"></span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline font-bold text-base tracking-tight text-white leading-none">NOVA-3</h4>
+<p class="text-xs text-on-surface-variant mt-1">Data Synthesis</p>
+</div>
+<span class="text-[10px] font-label font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 uppercase">In Mission</span>
+</div>
+<div class="flex flex-wrap gap-2 mt-3">
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">Quantum</span>
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">Analysis</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+<div class="w-2/3">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-label text-on-surface-variant">TRUST SCORE</span>
+<span class="text-[10px] font-headline font-bold">94.8</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full">
+<div class="bg-primary h-full w-[94.8%]"></div>
+</div>
+</div>
+<div class="flex space-x-1">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">satellite</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">info</span></button>
+</div>
+</div>
+</div>
+<!-- Agent Card 3: SENTINEL-12 -->
+<div class="glass-panel p-5 rounded-xl agent-card-glow transition-all duration-300 group">
+<div class="flex items-start space-x-4">
+<div class="relative">
+<div class="w-16 h-16 rounded-lg overflow-hidden ring-2 ring-outline-variant/40 p-1 bg-background">
+<img alt="SENTINEL-12" class="w-full h-full object-cover rounded-md opacity-80 grayscale group-hover:grayscale-0 transition-all" data-alt="Tactical soldier in advanced heavy armor with glowing visor sensors in a rain-slicked futuristic environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkheWs6N7woj-eUkJUYlzapy5cqOIQ8yotN4TczfZSMXAA_oCX_2OCTs0SbO-wcf3yLMqBL3Xhz3b6mVofrXS2RNHsd3QeV1ZgZxeV0XzyG3NRbglxX_vWz_2pDQhsUJ-s-DIlE9QdXXxwFLR2o-1cD-0hmg2-V0JFDw6IjdacA7MhGI85KXGhOjdm45CQJU01vVT-fqs2zy61cCqgGGZxHe-lrH3yCjRM4Zu8JZkmbE9qac3gBq--iF_fjqXHfjocdW0EQYgIGyQ"/>
+</div>
+<span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-outline-variant border-2 border-surface-container shadow-none"></span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline font-bold text-base tracking-tight text-white leading-none">SENTINEL-12</h4>
+<p class="text-xs text-on-surface-variant mt-1">Defense Protocol</p>
+</div>
+<span class="text-[10px] font-label font-bold px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant border border-outline-variant/20">STANDBY</span>
+</div>
+<div class="flex flex-wrap gap-2 mt-3">
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">Shielding</span>
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">Tactical</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+<div class="w-2/3">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-label text-on-surface-variant">TRUST SCORE</span>
+<span class="text-[10px] font-headline font-bold">96.1</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full">
+<div class="bg-primary h-full w-[96.1%]"></div>
+</div>
+</div>
+<div class="flex space-x-1">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">shield</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">settings_input_composite</span></button>
+</div>
+</div>
+</div>
+<!-- Agent Card 4: ECHO-9 -->
+<div class="glass-panel p-5 rounded-xl agent-card-glow transition-all duration-300 group">
+<div class="flex items-start space-x-4">
+<div class="relative">
+<div class="w-16 h-16 rounded-lg overflow-hidden ring-2 ring-emerald-500/40 p-1 bg-background">
+<img alt="ECHO-9" class="w-full h-full object-cover rounded-md opacity-80 grayscale group-hover:grayscale-0 transition-all" data-alt="Digital hologram avatar of a person composed of floating blue data particles and geometric lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBsYEomo9M8RUKzEM09NI114craDv8ZbjcgKjZWnCqfRZVAVX6mpLBtKN23_IT0lH0WjsFVHNOoMhP5CcCTkvExR1o9HYTmOBszQnLt-p_vT05gPIpIc5PQK3DtNgBEOfk3KM1rs_UoAJ3dRhfNbznI5XnK2Dke6qzk9iC5y3YnS_1yqOOzwlqJFQqYdhFTvBVZcklANiyTMpupxO5VsDHb2YG8RbtW47jMXO3l5A9ys-6f-gnIPdGKttPpPdR-8GK71V6mjuJXCJY"/>
+</div>
+<span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-surface-container shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline font-bold text-base tracking-tight text-white leading-none">ECHO-9</h4>
+<p class="text-xs text-on-surface-variant mt-1">Communications</p>
+</div>
+<span class="text-[10px] font-label font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">ACTIVE</span>
+</div>
+<div class="flex flex-wrap gap-2 mt-3">
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">Signals</span>
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">Decryption</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+<div class="w-2/3">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-label text-on-surface-variant">TRUST SCORE</span>
+<span class="text-[10px] font-headline font-bold">99.0</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full">
+<div class="bg-primary h-full w-[99%]"></div>
+</div>
+</div>
+<div class="flex space-x-1">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">rss_feed</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">voice_chat</span></button>
+</div>
+</div>
+</div>
+<!-- Agent Card 5: WRAITH-5 -->
+<div class="glass-panel p-5 rounded-xl agent-card-glow transition-all duration-300 group">
+<div class="flex items-start space-x-4">
+<div class="relative">
+<div class="w-16 h-16 rounded-lg overflow-hidden ring-2 ring-secondary/40 p-1 bg-background">
+<img alt="WRAITH-5" class="w-full h-full object-cover rounded-md opacity-80 grayscale group-hover:grayscale-0 transition-all" data-alt="Sleek chrome-finished robotic humanoid standing in a futuristic hangar with dramatic shadow play" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAU6_dXJcE9jRiWsr8u5fUI7rv3YTAN1OVcCXc-MuNgqk3NpNVSgxjLiHWCQTwzMWXU6Dl4ybgmDgl2nrwHPM9ZVEEMATkU_DSNyjIgx-Z8hE339_yjae3HZeSFVpu2M_yvaF8YfCNmAWbuXCjSZb-DJfpLqTAwY4EdLzSP1HBZ0YoYOK0Z1lpZ_w44Qu_5TWhH7KyRM3n0lghwFCKr6dEvcAQHyNq8N-vzQGs_MNzK-u7CQg8QRvXL2sNOM-yPCTe4JNUNNkhwQo"/>
+</div>
+<span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-secondary border-2 border-surface-container shadow-[0_0_8px_rgba(76,215,246,0.5)]"></span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline font-bold text-base tracking-tight text-white leading-none">WRAITH-5</h4>
+<p class="text-xs text-on-surface-variant mt-1">Deep Cover Unit</p>
+</div>
+<span class="text-[10px] font-label font-bold px-2 py-0.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 uppercase">In Mission</span>
+</div>
+<div class="flex flex-wrap gap-2 mt-3">
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">Ghost</span>
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">Espionage</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+<div class="w-2/3">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-label text-on-surface-variant">TRUST SCORE</span>
+<span class="text-[10px] font-headline font-bold">92.1</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full">
+<div class="bg-primary h-full w-[92.1%]"></div>
+</div>
+</div>
+<div class="flex space-x-1">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">visibility_off</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">travel_explore</span></button>
+</div>
+</div>
+</div>
+<!-- Agent Card 6: ORACLE-1 -->
+<div class="glass-panel p-5 rounded-xl agent-card-glow transition-all duration-300 group">
+<div class="flex items-start space-x-4">
+<div class="relative">
+<div class="w-16 h-16 rounded-lg overflow-hidden ring-2 ring-emerald-500/40 p-1 bg-background">
+<img alt="ORACLE-1" class="w-full h-full object-cover rounded-md opacity-80 grayscale group-hover:grayscale-0 transition-all" data-alt="Conceptual image of a floating brain-like digital entity made of glowing gold and white circuits" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtOZzujzOjaBuDhbV1mJUM10YY2sKqZj8oYtfYR2gDVJwE7cNxamrgesW6idjKualkfh1i1yhoDqubms3IJQsS-We5aj0QHroCy5CQ-7kHhBaMcug0LpI0yo7KRlIYM7l70nZ2_McdAetBDZME2KJY4AZ05GTTR6vY-3YOMfNAAbs58dEtcrO3hcSJeZNzH3d0iELH-6EtUSylmA79wQ88ULjlPGxfAZbqYi3cqmeeknR4T5HL5GCiIMorzMQY0AsRVgwui_DLIMQ"/>
+</div>
+<span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-surface-container shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline font-bold text-base tracking-tight text-white leading-none">ORACLE-1</h4>
+<p class="text-xs text-on-surface-variant mt-1">Predictive Analysis</p>
+</div>
+<span class="text-[10px] font-label font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase">Active</span>
+</div>
+<div class="flex flex-wrap gap-2 mt-3">
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">Forecasting</span>
+<span class="text-[9px] font-label tracking-tighter bg-surface-container-highest px-2 py-0.5 rounded border border-white/5 uppercase">AI Logic</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+<div class="w-2/3">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] font-label text-on-surface-variant">TRUST SCORE</span>
+<span class="text-[10px] font-headline font-bold">99.8</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full">
+<div class="bg-primary h-full w-[99.8%]"></div>
+</div>
+</div>
+<div class="flex space-x-1">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">batch_prediction</span></button>
+<button class="p-1.5 text-on-surface-variant hover:text-secondary hover:bg-white/5 rounded-md transition-colors"><span class="material-symbols-outlined text-lg">auto_graph</span></button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Activity Rail -->
+<aside class="w-[340px] border-l border-white/5 bg-surface-container-lowest/50 backdrop-blur-xl flex flex-col h-full sticky top-0">
+<div class="p-6 border-b border-white/5">
+<h3 class="font-headline font-bold text-sm uppercase tracking-widest text-secondary">Live Activity</h3>
+<p class="text-[10px] text-on-surface-variant mt-1">Real-time telemetry stream</p>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-6">
+<!-- Events List -->
+<div class="space-y-4">
+<div class="flex space-x-3 items-start">
+<div class="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+<div>
+<p class="text-[11px] leading-tight text-on-surface"><span class="text-primary font-bold">CIPHER-7</span> successfully bypassed Firewall Node Gamma.</p>
+<p class="text-[9px] font-label text-on-surface-variant mt-1">02:41:04 UTC</p>
+</div>
+</div>
+<div class="flex space-x-3 items-start">
+<div class="mt-1 w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(76,215,246,0.5)]"></div>
+<div>
+<p class="text-[11px] leading-tight text-on-surface"><span class="text-primary font-bold">NOVA-3</span> initialized deep cluster scan in Sector 4.</p>
+<p class="text-[9px] font-label text-on-surface-variant mt-1">02:39:58 UTC</p>
+</div>
+</div>
+<div class="flex space-x-3 items-start">
+<div class="mt-1 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(124,58,237,0.5)]"></div>
+<div>
+<p class="text-[11px] leading-tight text-on-surface">Trust ledger reconciliation completed for <span class="text-primary font-bold">ORACLE-1</span>.</p>
+<p class="text-[9px] font-label text-on-surface-variant mt-1">02:35:12 UTC</p>
+</div>
+</div>
+<div class="flex space-x-3 items-start">
+<div class="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+<div>
+<p class="text-[11px] leading-tight text-on-surface"><span class="text-primary font-bold">ECHO-9</span> established secure link with external node.</p>
+<p class="text-[9px] font-label text-on-surface-variant mt-1">02:30:44 UTC</p>
+</div>
+</div>
+<div class="flex space-x-3 items-start">
+<div class="mt-1 w-1.5 h-1.5 rounded-full bg-error shadow-[0_0_8px_rgba(255,180,171,0.5)]"></div>
+<div>
+<p class="text-[11px] leading-tight text-on-surface">Alert: Minor latency spike detected in neural relay.</p>
+<p class="text-[9px] font-label text-on-surface-variant mt-1">02:22:19 UTC</p>
+</div>
+</div>
+<div class="flex space-x-3 items-start">
+<div class="mt-1 w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_8px_rgba(76,215,246,0.5)]"></div>
+<div>
+<p class="text-[11px] leading-tight text-on-surface"><span class="text-primary font-bold">WRAITH-5</span> entering dark mode for stealth ops.</p>
+<p class="text-[9px] font-label text-on-surface-variant mt-1">02:18:05 UTC</p>
+</div>
+</div>
+</div>
+<!-- Active Missions Progress -->
+<div class="pt-6 border-t border-white/5 space-y-6">
+<h4 class="font-headline font-bold text-xs uppercase tracking-widest text-on-surface-variant">Mission Progress</h4>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between items-center text-[10px] font-label mb-2">
+<span class="text-white">PROJECT CHRONOS</span>
+<span class="text-secondary">82%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-secondary h-full w-[82%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center text-[10px] font-label mb-2">
+<span class="text-white">VOID RUNNER OPS</span>
+<span class="text-primary">45%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[45%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center text-[10px] font-label mb-2">
+<span class="text-white">SYNTH RECOVERY</span>
+<span class="text-emerald-500">12%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-emerald-500 h-full w-[12%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 bg-surface-container-low/50">
+<button class="w-full py-3 bg-primary-container text-on-primary-container font-label text-xs uppercase tracking-widest rounded-lg flex items-center justify-center group">
+                        Deploy New Mission
+                        <span class="material-symbols-outlined ml-2 text-sm transition-transform group-hover:translate-x-1">rocket_launch</span>
+</button>
+</div>
+</aside>
+</main>
+</div>
+</body></html>

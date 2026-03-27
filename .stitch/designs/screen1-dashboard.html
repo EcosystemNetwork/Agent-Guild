@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agent Guild | Mission Control</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-container-high": "#2a292f",
+                        "primary-fixed": "#eaddff",
+                        "on-tertiary-container": "#e5e2fe",
+                        "secondary": "#4cd7f6",
+                        "surface": "#131318",
+                        "inverse-primary": "#732ee4",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "on-tertiary": "#2f2e43",
+                        "tertiary-fixed": "#e2e0fc",
+                        "secondary-container": "#03b5d3",
+                        "primary": "#d2bbff",
+                        "outline": "#958da1",
+                        "tertiary-fixed-dim": "#c6c4df",
+                        "on-tertiary-fixed": "#1a1a2e",
+                        "surface-variant": "#35343a",
+                        "surface-dim": "#131318",
+                        "on-secondary-fixed": "#001f26",
+                        "error": "#ffb4ab",
+                        "on-background": "#e4e1e9",
+                        "on-secondary-container": "#00424e",
+                        "error-container": "#93000a",
+                        "surface-bright": "#39383e",
+                        "on-primary-container": "#ede0ff",
+                        "on-primary": "#3f008e",
+                        "surface-tint": "#d2bbff",
+                        "inverse-surface": "#e4e1e9",
+                        "on-surface-variant": "#ccc3d8",
+                        "on-primary-fixed-variant": "#5a00c6",
+                        "outline-variant": "#4a4455",
+                        "primary-fixed-dim": "#d2bbff",
+                        "primary-container": "#7c3aed",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "surface-container-highest": "#35343a",
+                        "on-error": "#690005",
+                        "on-surface": "#e4e1e9",
+                        "inverse-on-surface": "#303036",
+                        "on-secondary": "#003640",
+                        "secondary-fixed": "#acedff",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-fixed": "#25005a",
+                        "surface-container-low": "#1b1b20",
+                        "on-tertiary-fixed-variant": "#45455b",
+                        "background": "#131318",
+                        "surface-container": "#1f1f25",
+                        "surface-container-lowest": "#0e0e13",
+                        "tertiary": "#c6c4df",
+                        "tertiary-container": "#65647c"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0A0A0F;
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.03) 1px, transparent 0);
+            background-size: 32px 32px;
+            color: #e4e1e9;
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(27, 27, 32, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(124, 58, 237, 0.15);
+        }
+        .scanline {
+            background: linear-gradient(to bottom, transparent 50%, rgba(124, 58, 237, 0.02) 50%);
+            background-size: 100% 4px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex overflow-hidden">
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full z-50 flex flex-col bg-[#1b1b20]/80 backdrop-blur-xl h-screen border-r border-white/10 shadow-[32px_0_32px_rgba(19,19,24,0.08)] w-64">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<div>
+<h2 class="font-['Space_Grotesk'] font-bold text-white tracking-tight leading-none">Agent Guild</h2>
+<p class="text-[10px] font-['Space_Grotesk'] uppercase tracking-[0.1em] text-primary">Mission Control</p>
+</div>
+</div>
+<nav class="flex-1 mt-4 px-3 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 bg-[#7C3AED]/20 text-[#7C3AED] border-r-2 border-[#7C3AED] group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined">smart_toy</span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs">Agents</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs">Missions</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined">security</span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs">Trust Ledger</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined">forum</span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs">Comms</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200 group" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs">Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-white/5">
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6] transition-all duration-200">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs">Operator</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-64 flex flex-col h-screen relative">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full px-8 py-4 z-40 bg-[#131318]/50 backdrop-blur-md sticky top-0 border-b border-white/5">
+<div class="flex items-center gap-8">
+<h1 class="text-xl font-black text-white tracking-widest font-['Space_Grotesk'] uppercase">AGENT GUILD</h1>
+<div class="hidden lg:flex items-center gap-4">
+<span class="px-3 py-1 rounded-full bg-surface-container text-[10px] font-bold font-['Space_Grotesk'] text-[#4CD7F6] border border-[#4CD7F6]/20">Missions: 24</span>
+<span class="px-3 py-1 rounded-full bg-surface-container text-[10px] font-bold font-['Space_Grotesk'] text-[#4CD7F6] border border-[#4CD7F6]/20">Agents: 12</span>
+<span class="px-3 py-1 rounded-full bg-surface-container text-[10px] font-bold font-['Space_Grotesk'] text-[#4CD7F6] border border-[#4CD7F6]/20 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Uptime: 99.9%
+                    </span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-[#ccc3d8]">
+<button class="hover:text-white transition-colors"><span class="material-symbols-outlined">search</span></button>
+<button class="hover:text-white transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-[#7C3AED] rounded-full border border-[#131318]"></span>
+</button>
+</div>
+<div class="flex items-center gap-3 pl-6 border-l border-white/10">
+<div class="text-right">
+<p class="text-xs font-bold text-white font-['Space_Grotesk']">Commander Kai</p>
+<p class="text-[10px] text-primary uppercase tracking-wider">Level 4 Operator</p>
+</div>
+<div class="w-10 h-10 rounded-full border-2 border-primary/30 p-0.5">
+<img alt="Commander Kai Avatar" class="w-full h-full rounded-full object-cover" data-alt="Futuristic tactical commander avatar with high-tech headset and glowing violet HUD elements in background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDS8hStIq6LInZlSNwWwvusaP9wIH2LHm9CGftFBSQ8ZceiEjBJJ750dphEJFags_BgVLapMyDK3EY5_9gm6i8lIl71YKRi1_3BuS2bzA2ihRvVGh8OP2pS8rt0sq15RwNBgNin8jorrPyuHMsYdMqM3-6EB3xWvtxpuxXXDY7TBAYNHBZJ70IT216IuThBWw4YK4J7FMjlITomAz5P4LTWsamqu6aPQ29sfKsn2pXPFz_FL7yWcPcyjRxnz6ij3RnloSILfzqacgg"/>
+</div>
+</div>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+<!-- Hero Metrics Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<!-- Status Card -->
+<div class="glass-panel rounded-xl p-6 relative overflow-hidden group">
+<div class="scanline absolute inset-0 pointer-events-none"></div>
+<div class="flex justify-between items-start mb-4">
+<p class="font-['Space_Grotesk'] text-[10px] uppercase tracking-widest text-on-surface-variant">Guild Status</p>
+<span class="material-symbols-outlined text-primary text-sm">sensors</span>
+</div>
+<div class="flex items-center gap-3 mb-6">
+<div class="w-4 h-4 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)] animate-pulse"></div>
+<h3 class="text-2xl font-bold font-['Space_Grotesk'] tracking-tight">FULLY OPERATIONAL</h3>
+</div>
+<div class="h-12 flex items-end gap-1">
+<!-- Simplified Sparkline -->
+<div class="flex-1 bg-emerald-500/20 rounded-t h-[40%]"></div>
+<div class="flex-1 bg-emerald-500/30 rounded-t h-[60%]"></div>
+<div class="flex-1 bg-emerald-500/20 rounded-t h-[30%]"></div>
+<div class="flex-1 bg-emerald-500/40 rounded-t h-[80%]"></div>
+<div class="flex-1 bg-emerald-500/60 rounded-t h-[95%]"></div>
+<div class="flex-1 bg-emerald-500/40 rounded-t h-[70%]"></div>
+<div class="flex-1 bg-emerald-500/50 rounded-t h-[85%]"></div>
+</div>
+</div>
+<!-- Mission Card -->
+<div class="glass-panel rounded-xl p-6 relative overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<p class="font-['Space_Grotesk'] text-[10px] uppercase tracking-widest text-on-surface-variant">Active Missions</p>
+<div class="relative w-12 h-12">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-white/5" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-width="4"></circle>
+<circle class="text-secondary" cx="24" cy="24" fill="transparent" r="20" stroke="currentColor" stroke-dasharray="125.6" stroke-dashoffset="25.12" stroke-width="4"></circle>
+</svg>
+<span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white">12/15</span>
+</div>
+</div>
+<div class="mb-4">
+<h3 class="text-4xl font-black font-['Space_Grotesk'] tracking-tighter">12</h3>
+</div>
+<div class="flex gap-4 text-[10px] font-bold font-['Space_Grotesk'] uppercase text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> 8 Recon</span>
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> 3 Analysis</span>
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-error"></span> 1 Critical</span>
+</div>
+</div>
+<!-- Trust Card -->
+<div class="glass-panel rounded-xl p-6 relative overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<p class="font-['Space_Grotesk'] text-[10px] uppercase tracking-widest text-on-surface-variant">Total Trust Score</p>
+<span class="material-symbols-outlined text-[#4CD7F6]">verified_user</span>
+</div>
+<div class="flex items-baseline gap-2 mb-2">
+<h3 class="text-4xl font-black font-['Space_Grotesk'] tracking-tighter">97.4</h3>
+<span class="text-emerald-400 text-xs font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-sm">trending_up</span> 1.2%
+                        </span>
+</div>
+<div class="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-secondary w-[97.4%]"></div>
+</div>
+<p class="mt-4 text-[10px] text-on-surface-variant italic opacity-60">Calculated from 48,290 verified logs</p>
+</div>
+</section>
+<!-- Agent Roster Grid -->
+<section class="mb-12">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="text-2xl font-bold font-['Space_Grotesk'] tracking-tight text-white">Active Agents</h2>
+<p class="text-xs text-on-surface-variant">12 Agents registered in current sector</p>
+</div>
+<div class="flex gap-2">
+<button class="p-2 glass-panel rounded-lg text-on-surface-variant hover:text-white transition-all"><span class="material-symbols-outlined text-sm">filter_list</span></button>
+<button class="p-2 glass-panel rounded-lg text-on-surface-variant hover:text-white transition-all"><span class="material-symbols-outlined text-sm">grid_view</span></button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- Agent Card 1 -->
+<div class="glass-panel rounded-xl p-5 hover:bg-surface-bright transition-all duration-300 group">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl overflow-hidden border-2 border-emerald-500/30 p-1">
+<img alt="Agent CIPHER-7" class="w-full h-full rounded-lg bg-surface-container-low" data-alt="Stylized geometric AI robot head icon with glowing cyan eyes and digital interface patterns" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxmSCFAkwXSJNsCE6UVxg_FBxkofgsQf9UQq3SqsFZys4RXSj8SW3yKjbPaOaC70pNOpxd6UBNR8If26cGbISEqkqaA6KnKq1Su8FRFmHqhIc-t64-ogeJIj9WLxyMgao3NyApgfKIGM0RBs0T5RLW1y29-8Huj338WSk_4dWVeN1OvW80GmbIRAEsSuNENSGLzpMMP7HskJr1Z92d1ZR2UQIHSUH1RfrQVdtPNQ6OHWDHqglQEJveIc9g766pZf78NXgC_SDPdSw"/>
+</div>
+<div>
+<h4 class="font-bold text-white font-['Space_Grotesk']">CIPHER-7</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Cryptanalysis Specialist</p>
+</div>
+</div>
+<div class="px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase">Active</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Trust Rating</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">92%</p>
+</div>
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Mission Clock</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">142h</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 rounded-lg bg-primary-container text-white text-[10px] font-bold uppercase tracking-wider hover:brightness-110 transition-all">Assign</button>
+<button class="px-3 py-2 rounded-lg bg-surface-container-high border border-white/10 text-on-surface-variant hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</div>
+</div>
+<!-- Agent Card 2 -->
+<div class="glass-panel rounded-xl p-5 hover:bg-surface-bright transition-all duration-300">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl overflow-hidden border-2 border-amber-500/30 p-1">
+<img alt="Agent PULSE" class="w-full h-full rounded-lg bg-surface-container-low" data-alt="Advanced AI security drone icon with pulse-wave digital motifs and amber lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmBC8rikTdBDIk6S2jhh-8ZxyiVB0YpowDpY0CQ0M5Wo7ZhDZXV8P8_nRpaXIDPJ_xRxBDGEfPv9wGdFDiKlm6OwxVcZagjZTZP_9D5eA2f2lAgbe2NkMvrqmo7oLrwlh20cYKgDTI38GCCwPRcc6-zIl75yg0k2eB_Se3AOWqW2_xPX5_4kWfWhoJ-uLvcqVg70mc-ECyXQ-uV981TiL3hrkDX-PZ1Is4Yr9uHW4jf3jtrFwGwWVJ8VcekE4rCghjO2i1Cxfvto0"/>
+</div>
+<div>
+<h4 class="font-bold text-white font-['Space_Grotesk']">PULSE</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Network Security</p>
+</div>
+</div>
+<div class="px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase">In Mission</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Trust Rating</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">88%</p>
+</div>
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Alert Level</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">Low</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 rounded-lg bg-surface-container-high border border-white/5 text-on-surface-variant text-[10px] font-bold uppercase tracking-wider cursor-not-allowed">Occupied</button>
+<button class="px-3 py-2 rounded-lg bg-surface-container-high border border-white/10 text-on-surface-variant hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</div>
+</div>
+<!-- Agent Card 3 -->
+<div class="glass-panel rounded-xl p-5 hover:bg-surface-bright transition-all duration-300">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl overflow-hidden border-2 border-emerald-500/30 p-1">
+<img alt="Agent VOID-1" class="w-full h-full rounded-lg bg-surface-container-low" data-alt="Sleek minimalist AI processor icon with deep violet accents and quantum particle visuals" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBekARe85I6Hk14Leqeez0yHrT1wBN-MvThtM4Iq9PiBT0NiG_Stm70pG2lmSAS7rX8WaUcP4IUU9oZdfGIrm4eG4rO_OB07ZQHcfM-77LVTKBpX-qoGqTzfI4Jdx6yKAbq3BGfmIdhGc9LCvJV_b5waTX_mXyk_760Iu2hoXUFaAFVhQZRIZFiWDp2hl2g5EXhsIqVuwWn_So01P0Mjva9puWccW5K4g8gVZMY5T8CbIDNKl5IhoEdhFecgjRJ6ReXmbDcNABqVFI"/>
+</div>
+<div>
+<h4 class="font-bold text-white font-['Space_Grotesk']">VOID-1</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Quantum Analysis</p>
+</div>
+</div>
+<div class="px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase">Active</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Trust Rating</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">95%</p>
+</div>
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Compute Load</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">12%</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 rounded-lg bg-primary-container text-white text-[10px] font-bold uppercase tracking-wider hover:brightness-110 transition-all">Assign</button>
+<button class="px-3 py-2 rounded-lg bg-surface-container-high border border-white/10 text-on-surface-variant hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</div>
+</div>
+<!-- Agent Card 4 -->
+<div class="glass-panel rounded-xl p-5 hover:bg-surface-bright transition-all duration-300">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl overflow-hidden border-2 border-rose-500/30 p-1">
+<img alt="Agent AXON" class="w-full h-full rounded-lg bg-surface-container-low" data-alt="Neural network inspired AI avatar with glowing red fiber-optic patterns and synaptic nodes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7XIsNUwC_hDfxIDVrwCpNh7AuRimIOqYBI_1lIpuOFaGLWFetD9cks6liSqM5BK8MoAEatvax-lizfWi_0TucORz-ajtMnAA274oFvkSwIJBt1Pb_yEd-p8-eN1vguU6oZPuFqGngipkhTFUFlHaQb-YKGhtGlpV3nD8tInwjmOhpiZhHorQAsV7OmRZv0n6m3z0mSJrC-njChtL9sTux0ml5nVrtf0B9cxnHVgnw3ciuuSeZIiEovDQDM8emYBC_sEGTLBv-xd0"/>
+</div>
+<div>
+<h4 class="font-bold text-white font-['Space_Grotesk']">AXON</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Neural Mapping</p>
+</div>
+</div>
+<div class="px-2 py-1 rounded bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-bold uppercase">Standby</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Trust Rating</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">84%</p>
+</div>
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Last Sync</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">4m ago</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 rounded-lg bg-primary-container text-white text-[10px] font-bold uppercase tracking-wider hover:brightness-110 transition-all">Assign</button>
+<button class="px-3 py-2 rounded-lg bg-surface-container-high border border-white/10 text-on-surface-variant hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</div>
+</div>
+<!-- Agent Card 5 -->
+<div class="glass-panel rounded-xl p-5 hover:bg-surface-bright transition-all duration-300">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl overflow-hidden border-2 border-emerald-500/30 p-1">
+<img alt="Agent ECHO-5" class="w-full h-full rounded-lg bg-surface-container-low" data-alt="Satellite dish and signal wave inspired AI icon in electric blue and charcoal grey" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO_utMUHVa84uO2iFLRBslnWGfxxNBIdgICvcOHioz24tlD1mgeG2N8hLs9JqOEXUB0FIr34oWcGAQ3-aqg6TWBSxXLutF61kr3smZ6iBilY3uskON8M3FIfeLPifrH3GUNiq7rZUL4maMAe-pjCBykeem7Ryf-O2lmYgIn7kg7BEgt9aZDCEcJULL7SYSbwI5Jo5YJGpptSz77PfG3Xbq_5dDqOVvRyh9rXIKOZmM0747qfdHcDgugxd9L37q_OHa82NfdJ-Gr8o"/>
+</div>
+<div>
+<h4 class="font-bold text-white font-['Space_Grotesk']">ECHO-5</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Signal Intelligence</p>
+</div>
+</div>
+<div class="px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase">Active</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Trust Rating</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">91%</p>
+</div>
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Sig-Str</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">Full</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 rounded-lg bg-primary-container text-white text-[10px] font-bold uppercase tracking-wider hover:brightness-110 transition-all">Assign</button>
+<button class="px-3 py-2 rounded-lg bg-surface-container-high border border-white/10 text-on-surface-variant hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</div>
+</div>
+<!-- Agent Card 6 -->
+<div class="glass-panel rounded-xl p-5 hover:bg-surface-bright transition-all duration-300">
+<div class="flex items-start justify-between mb-4">
+<div class="flex items-center gap-4">
+<div class="w-14 h-14 rounded-xl overflow-hidden border-2 border-amber-500/30 p-1">
+<img alt="Agent VECTOR" class="w-full h-full rounded-lg bg-surface-container-low" data-alt="Tactical map HUD inspired AI icon with directional arrows and radar scan patterns" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCl_Y81LI8IfJ9JktQgb_zZnzyL63oGVc-MkjOXWi4Aj1SSC-IEHb1Xw3f3oYQwop9U9gBw0qfMERAtmRm23dE1BLTs4OE23mTyW8RFbwuQQMB6So1PUyzjsZobtEG_WwKyNz8kpAtIOWxLqqEckb8WC0735AlCNhQ6sO7dXeIh8TezOdvNzetYvpb1q2AB74Ff-aB3-ud7l-btH9PVX9D7bkWcfR5l2xW0veYG_bN5L63f5EbIasiCjvxo5qKT09jg6r06PvfHxpY"/>
+</div>
+<div>
+<h4 class="font-bold text-white font-['Space_Grotesk']">VECTOR</h4>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest">Tactical Simulation</p>
+</div>
+</div>
+<div class="px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase">In Mission</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Trust Rating</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">89%</p>
+</div>
+<div class="bg-surface-container-low rounded-lg p-3">
+<p class="text-[9px] uppercase tracking-widest text-on-surface-variant mb-1">Risk Factor</p>
+<p class="text-lg font-bold text-white font-['Space_Grotesk']">2.4</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 py-2 rounded-lg bg-surface-container-high border border-white/5 text-on-surface-variant text-[10px] font-bold uppercase tracking-wider cursor-not-allowed">Occupied</button>
+<button class="px-3 py-2 rounded-lg bg-surface-container-high border border-white/10 text-on-surface-variant hover:text-white transition-all">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Activity Rail (Floating/Fixed Overlay Style) -->
+<aside class="absolute right-0 top-[72px] h-[calc(100vh-72px)] w-80 glass-panel border-l border-white/5 p-6 flex flex-col hidden 2xl:flex">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-['Space_Grotesk'] font-bold text-sm uppercase tracking-widest text-white">Live Activity</h3>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<span class="text-[10px] font-bold text-error uppercase">Real-Time</span>
+</div>
+</div>
+<div class="flex-1 space-y-4 overflow-y-auto custom-scrollbar pr-2">
+<!-- Log Item -->
+<div class="flex gap-3 text-xs border-l-2 border-primary/30 pl-3 py-1">
+<div class="flex-1">
+<p class="text-white font-medium">Mission <span class="text-primary">"NEON-STORM"</span> launched</p>
+<p class="text-[10px] text-on-surface-variant">Assigned to Agent CIPHER-7</p>
+</div>
+<span class="text-[10px] text-on-surface-variant opacity-60">2m ago</span>
+</div>
+<div class="flex gap-3 text-xs border-l-2 border-secondary/30 pl-3 py-1">
+<div class="flex-1">
+<p class="text-white font-medium">Agent PULSE intercepted signal</p>
+<p class="text-[10px] text-on-surface-variant">Sector 7G encrypted packet</p>
+</div>
+<span class="text-[10px] text-on-surface-variant opacity-60">5m ago</span>
+</div>
+<div class="flex gap-3 text-xs border-l-2 border-error/30 pl-3 py-1">
+<div class="flex-1">
+<p class="text-white font-medium">Quantum leak detected</p>
+<p class="text-[10px] text-on-surface-variant">Automatic mitigation in progress</p>
+</div>
+<span class="text-[10px] text-on-surface-variant opacity-60">12m ago</span>
+</div>
+<div class="flex gap-3 text-xs border-l-2 border-white/10 pl-3 py-1">
+<div class="flex-1">
+<p class="text-white font-medium">Trust Ledger update</p>
+<p class="text-[10px] text-on-surface-variant">Global reputation +0.02</p>
+</div>
+<span class="text-[10px] text-on-surface-variant opacity-60">15m ago</span>
+</div>
+<div class="flex gap-3 text-xs border-l-2 border-white/10 pl-3 py-1 opacity-60">
+<div class="flex-1">
+<p class="text-white font-medium">Agent VECTOR completed training</p>
+<p class="text-[10px] text-on-surface-variant">Tactical Sim 4.0 pass</p>
+</div>
+<span class="text-[10px] text-on-surface-variant">22m ago</span>
+</div>
+<div class="flex gap-3 text-xs border-l-2 border-white/10 pl-3 py-1 opacity-50">
+<div class="flex-1">
+<p class="text-white font-medium">Guild parameters adjusted</p>
+<p class="text-[10px] text-on-surface-variant">Uptime optimization 2.1</p>
+</div>
+<span class="text-[10px] text-on-surface-variant">45m ago</span>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-white/10">
+<h4 class="text-[10px] font-['Space_Grotesk'] font-bold uppercase tracking-[0.2em] text-on-surface-variant mb-4">Mission Updates</h4>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-[10px] font-bold mb-1">
+<span class="text-white">RECON-ALPHA</span>
+<span class="text-secondary">82%</span>
+</div>
+<div class="w-full h-1 bg-white/5 rounded-full">
+<div class="h-full bg-secondary w-[82%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-bold mb-1">
+<span class="text-white">THREAT-SCAN-V2</span>
+<span class="text-primary">45%</span>
+</div>
+<div class="w-full h-1 bg-white/5 rounded-full">
+<div class="h-full bg-primary w-[45%]"></div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- Global FAB Suppression as per mandate: FABs are suppressed on Dashboards unless specifically requested -->
+</body></html>

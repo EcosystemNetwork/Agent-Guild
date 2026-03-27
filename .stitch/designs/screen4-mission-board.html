@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;900&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary": "#4cd7f6",
+              "on-tertiary-container": "#e5e2fe",
+              "on-primary-container": "#ede0ff",
+              "error-container": "#93000a",
+              "tertiary-fixed": "#e2e0fc",
+              "surface-variant": "#35343a",
+              "tertiary-container": "#65647c",
+              "primary": "#d2bbff",
+              "on-surface-variant": "#ccc3d8",
+              "inverse-primary": "#732ee4",
+              "error": "#ffb4ab",
+              "surface-container-high": "#2a292f",
+              "on-secondary-container": "#00424e",
+              "on-background": "#e4e1e9",
+              "surface": "#131318",
+              "on-tertiary": "#2f2e43",
+              "on-secondary": "#003640",
+              "on-error-container": "#ffdad6",
+              "surface-container-lowest": "#0e0e13",
+              "on-tertiary-fixed": "#1a1a2e",
+              "inverse-surface": "#e4e1e9",
+              "inverse-on-surface": "#303036",
+              "primary-fixed-dim": "#d2bbff",
+              "surface-tint": "#d2bbff",
+              "surface-container-low": "#1b1b20",
+              "surface-container": "#1f1f25",
+              "on-tertiary-fixed-variant": "#45455b",
+              "secondary-container": "#03b5d3",
+              "background": "#131318",
+              "on-surface": "#e4e1e9",
+              "on-secondary-fixed": "#001f26",
+              "secondary-fixed": "#acedff",
+              "outline": "#958da1",
+              "on-error": "#690005",
+              "tertiary-fixed-dim": "#c6c4df",
+              "surface-dim": "#131318",
+              "on-secondary-fixed-variant": "#004e5c",
+              "tertiary": "#c6c4df",
+              "on-primary-fixed-variant": "#5a00c6",
+              "primary-container": "#7c3aed",
+              "outline-variant": "#4a4455",
+              "surface-bright": "#39383e",
+              "secondary-fixed-dim": "#4cd7f6",
+              "on-primary-fixed": "#25005a",
+              "on-primary": "#3f008e",
+              "surface-container-highest": "#35343a",
+              "primary-fixed": "#eaddff"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Space Grotesk"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { background: rgba(27, 27, 32, 0.7); backdrop-filter: blur(12px); }
+        .scanline { background: linear-gradient(to bottom, transparent 50%, rgba(124, 58, 237, 0.02) 50%); background-size: 100% 4px; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #131318; }
+        ::-webkit-scrollbar-thumb { background: #2a292f; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-white overflow-hidden">
+<!-- Top Navigation Bar (Shared Component) -->
+<header class="fixed top-0 w-full h-16 flex justify-between items-center px-6 bg-[#131318]/80 backdrop-blur-xl border-b border-[#2a292f]/30 z-50 shadow-[0_0_20px_rgba(0,0,0,0.4)]">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black tracking-tighter text-[#7C3AED] dark:text-[#7C3AED] font-headline">AGENT GUILD</span>
+<nav class="hidden md:flex gap-6">
+<a class="font-['Space_Grotesk'] tracking-tight uppercase text-sm text-[#7C3AED] border-b-2 border-[#7C3AED] pb-1 transition-all duration-200" href="#">Missions</a>
+<a class="font-['Space_Grotesk'] tracking-tight uppercase text-sm text-[#ccc3d8]/60 hover:text-[#ccc3d8] transition-all duration-200" href="#">Intelligence</a>
+<a class="font-['Space_Grotesk'] tracking-tight uppercase text-sm text-[#ccc3d8]/60 hover:text-[#ccc3d8] transition-all duration-200" href="#">Squads</a>
+<a class="font-['Space_Grotesk'] tracking-tight uppercase text-sm text-[#ccc3d8]/60 hover:text-[#ccc3d8] transition-all duration-200" href="#">Logs</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#ccc3d8]/60 hover:bg-[#2a292f]/50 rounded-lg transition-all active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-[#ccc3d8]/60 hover:bg-[#2a292f]/50 rounded-lg transition-all active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-8 h-8 rounded-full border border-outline-variant overflow-hidden">
+<img alt="User tactical profile" class="w-full h-full object-cover" data-alt="close-up portrait of a futuristic tactical specialist with neon accents and high-tech eyewear in a dark room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJklYH7Y768JNHz9n-8_oRotY_krMImCOeODQY_wdpz1IzipjHoKBz7NMz4Iirv0lQ0c01N3scegv51oNpM4vqZG3xORhvUCuJCJ5twq1NX7mwUJ2SMWpwBjhumAmnd3tCE8FGXzmvU2oX1ADY67uDoW1fp16FqdZxZwntsOD4WRLkm0jWcTcxFY_yrJOoL2xUKLj1WzLH9T7evf0oqeIQx86fw6BUSHwZmna_0Ve8BHlnIVCu32qWs0_SkBM0XLR75D24nYwkJTI"/>
+</div>
+</div>
+</header>
+<!-- Side Navigation Bar (Shared Component) -->
+<aside class="fixed left-0 top-0 flex flex-col h-full py-8 bg-[#1b1b20] border-r border-[#2a292f]/50 w-64 z-40 hidden md:flex">
+<div class="mt-16 px-6 mb-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center border border-outline-variant/30">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<div>
+<h3 class="font-headline text-xs font-bold tracking-[0.05em] text-on-surface uppercase">COMMANDER</h3>
+<p class="font-headline text-[10px] text-on-surface-variant uppercase tracking-widest">ID-992-ALPHA</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-2">
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-[#ccc3d8]/50 hover:bg-[#2a292f]/30 font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs transition-colors ease-out duration-200" href="#">
+<span class="material-symbols-outlined text-lg">grid_view</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg bg-[#2a292f] text-[#4CD7F6] border-l-4 border-[#7C3AED] font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs transition-colors ease-out duration-200" href="#">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">target</span>
+<span>Operations</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-[#ccc3d8]/50 hover:bg-[#2a292f]/30 font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs transition-colors ease-out duration-200" href="#">
+<span class="material-symbols-outlined text-lg">hub</span>
+<span>Network</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-[#ccc3d8]/50 hover:bg-[#2a292f]/30 font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs transition-colors ease-out duration-200" href="#">
+<span class="material-symbols-outlined text-lg">lock</span>
+<span>Vault</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-[#ccc3d8]/50 hover:bg-[#2a292f]/30 font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs transition-colors ease-out duration-200" href="#">
+<span class="material-symbols-outlined text-lg">terminal</span>
+<span>Terminal</span>
+</a>
+</nav>
+<div class="px-4 mb-4">
+<button class="w-full py-3 bg-primary-container text-on-primary-container rounded-lg font-headline font-bold text-xs tracking-widest uppercase flex items-center justify-center gap-2 shadow-[0_0_12px_rgba(124,58,237,0.2)] active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm">add</span>
+                NEW MISSION
+            </button>
+</div>
+<div class="px-4 border-t border-[#2a292f]/50 pt-4 space-y-2">
+<a class="flex items-center gap-4 px-4 py-2 rounded-lg text-[#ccc3d8]/50 hover:text-[#4CD7F6] font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">help</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-2 rounded-lg text-[#ccc3d8]/50 hover:text-error font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">logout</span>
+<span>Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Workspace -->
+<main class="ml-0 md:ml-64 pt-16 h-screen flex flex-col relative scanline">
+<!-- Tactical Header / Toolbar -->
+<div class="px-8 py-6 flex flex-wrap items-center justify-between gap-6 bg-surface/40 backdrop-blur-sm border-b border-outline-variant/10">
+<div class="flex items-center gap-6 flex-1 max-w-2xl">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+<input class="w-full bg-surface-container-lowest border-none rounded-lg pl-11 pr-4 py-2.5 text-xs font-headline tracking-widest text-on-surface placeholder:text-outline/40 focus:ring-1 focus:ring-secondary/60 glass-panel" placeholder="QUERY MISSIONS..." type="text"/>
+</div>
+<div class="flex gap-3">
+<div class="relative group">
+<button class="px-4 py-2.5 bg-surface-container-high rounded-lg text-[10px] font-headline font-bold tracking-widest flex items-center gap-2 border border-outline-variant/20 hover:border-secondary/40 transition-colors uppercase">
+                            Priority <span class="material-symbols-outlined text-xs">expand_more</span>
+</button>
+</div>
+<div class="relative group">
+<button class="px-4 py-2.5 bg-surface-container-high rounded-lg text-[10px] font-headline font-bold tracking-widest flex items-center gap-2 border border-outline-variant/20 hover:border-secondary/40 transition-colors uppercase">
+                            Agent Group <span class="material-symbols-outlined text-xs">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex -space-x-3">
+<img alt="Active Agent" class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container-high" data-alt="profile icon of a cybernetic agent with glowing blue eyes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzllE1uYR6e8rtraizD9Gitp_rdEGSasp5_hL-lsSfbc0vSBL4gEN85WHPT5lPBKq8e0v6gGYhU6LncOmCSpEG70HAKFaeMF6i_E0Y4F_m6AN64zdDuNic6NVKlhe-qsNo0fdyY-y-XdxmwPKuDD87uFo7P1PWIl9eWmrRjSgqi-IvPlYX3XOZMtygXAycSOm4iQMZnJ7QdFtlX3fC8XOQbf6Oh3TDFea7XXb5Zcz93BIADx2kRgRFZlFNgEQwYJWC1mPKibxhauU"/>
+<img alt="Active Agent" class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container-high" data-alt="profile icon of a tactical operative with a face mask" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJC4eHlxzW27PBcZBtrPxiq8v5TBCiU2uLFvig_lqv4IfZ74hnqWtW7URp9ufFrzVNUb4jJJVfb19mNVjBts8wWQiQEW0ZpGR1aYcarCch9fg_sGx6NNvIyoowtdQrWiTCB33_KANjJJGAoyJ9yVNQy095tpOq7e6u0PQo634PJD9Ah0NOKvkQMjc0X1mVwezBy0Z_UhEjLQ1-4QbpcZpVO62__alx0-kN-LKtZngcJP-Luchc5JfLb_KtGhAMX5xSNS-AJbNWmkI"/>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container-highest flex items-center justify-center text-[10px] font-bold text-secondary">+4</div>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant/30"></div>
+<button class="flex items-center gap-2 px-6 py-2.5 bg-primary-container text-on-primary font-headline font-black text-xs tracking-tighter uppercase rounded-lg hover:shadow-[0_0_15px_rgba(124,58,237,0.4)] transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                    NEW MISSION
+                </button>
+</div>
+</div>
+<!-- Kanban Board Container -->
+<div class="flex-1 overflow-x-auto p-8 flex gap-6 items-start">
+<!-- Column: QUEUED -->
+<div class="flex-none w-80 h-full flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-outline shadow-[0_0_8px_rgba(149,141,161,0.5)]"></div>
+<h2 class="font-headline text-xs font-black tracking-[0.2em] text-outline uppercase">QUEUED</h2>
+<span class="text-[10px] font-bold text-outline/50 bg-surface-container-high px-2 py-0.5 rounded">08</span>
+</div>
+<button class="text-outline/40 hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-sm">more_horiz</span>
+</button>
+</div>
+<div class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2">
+<!-- Card 1 -->
+<div class="bg-surface-container-low/60 border border-outline-variant/10 rounded-xl p-4 hover:border-primary/40 transition-all cursor-pointer group hover:bg-surface-container-high/80">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[9px] font-headline font-black tracking-widest text-secondary uppercase bg-secondary/10 px-2 py-0.5 rounded">LOW</span>
+<span class="text-[9px] font-headline text-on-surface-variant/40 uppercase">#MN-402</span>
+</div>
+<h3 class="font-headline font-bold text-sm text-on-surface mb-2 group-hover:text-primary transition-colors">NEURAL BYPASS V2</h3>
+<p class="text-[11px] text-on-surface-variant line-clamp-2 mb-4">Decrypting secure layer on central intelligence mainframe.</p>
+<div class="mb-4">
+<div class="flex justify-between items-end mb-1">
+<span class="text-[9px] font-headline text-outline uppercase">Integrity</span>
+<span class="text-[9px] font-headline text-outline">0%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div class="w-0 h-full bg-primary shadow-[0_0_8px_rgba(210,187,255,0.4)]"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<img alt="Agent" class="w-6 h-6 rounded-full border border-surface bg-surface-container-high" data-alt="avatar of a hooded hacker with digital rain overlay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcohZHi9jUIOGuRGI4fCXNXL752BnL3xz62oAZwiQrDlaqEjDKn_ar2meEl-aYZYxxN5NAvfPzASohuSDC-ZABT0gotY_hbEosA1V6r_hTvBWnd8eumvJj-jcFB3r2TmjPvR0d4x1rtwxvMRi8piXLMSxJoM4S5t-NxRwiyZD8_OmKHJJnHNYJwhJu7Z3K2Fz74mGIVkWE8Km8p5mpiD82co67pu7Stj3eTewkm5ofmkx6MwkRwcLL9yOxhY4luJhXDnAd4lakZWo"/>
+</div>
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-xs">schedule</span>
+<span class="text-[9px] font-headline tracking-tighter">T-MINUS 12H</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-low/60 border border-outline-variant/10 rounded-xl p-4 hover:border-primary/40 transition-all cursor-pointer group hover:bg-surface-container-high/80">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[9px] font-headline font-black tracking-widest text-amber-500 uppercase bg-amber-500/10 px-2 py-0.5 rounded">MODERATE</span>
+<span class="text-[9px] font-headline text-on-surface-variant/40 uppercase">#MN-405</span>
+</div>
+<h3 class="font-headline font-bold text-sm text-on-surface mb-2 group-hover:text-primary transition-colors">SIGNAL GHOSTING</h3>
+<p class="text-[11px] text-on-surface-variant line-clamp-2 mb-4">Establish perimeter shadow network for Agent 7.</p>
+<div class="mb-4">
+<div class="flex justify-between items-end mb-1">
+<span class="text-[9px] font-headline text-outline uppercase">Integrity</span>
+<span class="text-[9px] font-headline text-outline">12%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div class="w-[12%] h-full bg-secondary shadow-[0_0_8px_rgba(76,215,246,0.4)]"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<img alt="Agent" class="w-6 h-6 rounded-full border border-surface bg-surface-container-high" data-alt="silhouette of a female spy profile with a glowing communication earpiece" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDK1DUcqWvu6SmW4HBm7bPqluv3X4zEB2ROmQK29Vk-ltrLHXoVgkAR-gav3wBsqeqPmEfD2fXqMs4ZSRZ4njBs3fHAWE2s2bBDgG1vhFOkLHOpyX8ory9zHFwE0d2p2V03aHKq-lwYxPGy-s0gXeN5H6GrfwFaLowImbul_Ecp4ZpzZpY-52GjiGgUpWmYFNuZFvNJeiuUFT0urT3DvsNh-KgtWz9UnT6JNX1Ti17rKobTd2Ff4Vsr8PRG3Bwuh1UmjlPUW6xEBZU"/>
+<img alt="Agent" class="w-6 h-6 rounded-full border border-surface bg-surface-container-high" data-alt="digital avatar of a tactical infiltration expert" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZmwRks_DXamzkDwAy8pYko7YxkTUHeA4PoVgEexOv1F6FqZHJrRqBznUHdkwGtcFLU9ePWOl1FGCDWhAmGKXMf7-MS0ZXHpbXK4F_Gl1lPJvdDGIZZpcg2D95IUq94Tdq1GKgZAHs-ZqPT3m_GXjbBlTYfSW1tuZXYSZwEykd58Jmc9RG0sPRaCIRvdC3C7oKXBa89WUXxOHd9L5uXtJBKSzisdRh573G1WcRlFZZUszy9GJbbYMe0qEcyYDrCr-3h1_r9PbLhl8"/>
+</div>
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-xs">schedule</span>
+<span class="text-[9px] font-headline tracking-tighter">T-MINUS 04H</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: ACTIVE -->
+<div class="flex-none w-80 h-full flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(124,58,237,0.8)]"></div>
+<h2 class="font-headline text-xs font-black tracking-[0.2em] text-primary uppercase">ACTIVE</h2>
+<span class="text-[10px] font-bold text-on-primary-container bg-primary-container/40 px-2 py-0.5 rounded">03</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2">
+<!-- Card: ACTIVE 1 -->
+<div class="bg-surface-container-high border border-primary/20 rounded-xl p-4 shadow-[inset_0_0_20px_rgba(124,58,237,0.05)] cursor-pointer group border-l-4 border-l-primary relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-full -mr-8 -mt-8"></div>
+<div class="flex justify-between items-start mb-3 relative z-10">
+<span class="text-[9px] font-headline font-black tracking-widest text-red-500 uppercase bg-red-500/10 px-2 py-0.5 rounded flex items-center gap-1">
+<span class="w-1 h-1 bg-red-500 rounded-full animate-pulse"></span> CRITICAL
+                            </span>
+<span class="text-[9px] font-headline text-on-surface-variant/60 uppercase">#MN-219</span>
+</div>
+<h3 class="font-headline font-bold text-sm text-on-surface mb-2">OPERATION SHADOW LINK</h3>
+<p class="text-[11px] text-on-surface-variant/80 mb-4">Direct assault on Tier-1 server clusters in sector 9.</p>
+<div class="mb-4">
+<div class="flex justify-between items-end mb-1">
+<span class="text-[9px] font-headline text-primary uppercase font-bold">Incursion Progress</span>
+<span class="text-[9px] font-headline text-primary">68%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-lowest rounded-full overflow-hidden">
+<div class="w-[68%] h-full bg-primary shadow-[0_0_12px_rgba(124,58,237,0.6)]"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<img alt="Agent" class="w-6 h-6 rounded-full border border-surface bg-surface-container-high" data-alt="close-up of a high-tech tactical helmet visor showing mission data" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRFaE-sAQabxNZ5fBqtluao-vDQY1VYRoIEq8QMROKZ-K9WaORGQS3TQv3PnJuDvaWDr0Obo14YH4cViRoPoWVXMLPR1fg1xJhwjFKt8LxI0ml_EeOPPvre9hh2GPwt_K0sqE_g9SS4u8ErfEuOXqzb-1Emz5ELiF-LsS8AaovX0mNLHkFa8FAE4f_LXM1SIqC9Yc4FMXi_iq0iAwceBKb5qpzGoY0bZRo6s9Y0NISst2_JdyU_gJe0IV9D3c86TWZCU4F968fBpI"/>
+<img alt="Agent" class="w-6 h-6 rounded-full border border-surface bg-surface-container-high" data-alt="avatar of a professional female tech-ops specialist" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQNUGd8vakEDEmD2JwC_a6_cnfiAzsRB3m7HrR25Vph9j1uiT7H2qyRZK-OMJdQT2Z1myIUY74xDDXnqRuhfC3kBQtNEAP7i1v42ZGBWpTAIT_LTQh1BuDiqy0m3jaxsCO3YXGyFYT_3wcUEs7nsA_ZOQecHJTGsrtkqXOUvGjm9qtK9lsYQd_5aeoOi0T3pxmL3uqWCMs5hZ8zUbAPYJVBZPQwQeHcmJlEx_GGHWAnwISiq47CO5igoGvRb16w73HKU7B1z2dsoA"/>
+<img alt="Agent" class="w-6 h-6 rounded-full border border-surface bg-surface-container-high" data-alt="hacker avatar with minimalist mask" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeo7ghbUHXrL_dD39OiGRghqrcYMphCvMMXPrVA_f9VsBrNvHeRGD6bgtL2qoHozd7DZLLXthzXI0p3pexsB_JAw-bhgODYInJRhBzyTCRBvG49mCsawrOWjUHjTZcgGl0Y5iW0NXi01iXobCmNGuZo7agZerGf9zVdcswGy7CB714Cz9DEarDuLg_qBBbSg0E-TKk-MNDnzN8Eu2GvOtyzNaSC-AE7iG33pBQhZxUD4qgZ8eUmuQVVoMMLIa10YPL31oWNQViseU"/>
+</div>
+<div class="flex items-center gap-1.5 text-primary">
+<span class="material-symbols-outlined text-xs">timer</span>
+<span class="text-[9px] font-headline tracking-tighter">02:44:12</span>
+</div>
+</div>
+</div>
+<!-- Card: ACTIVE 2 -->
+<div class="bg-surface-container-high border border-outline-variant/30 rounded-xl p-4 cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[9px] font-headline font-black tracking-widest text-amber-500 uppercase bg-amber-500/10 px-2 py-0.5 rounded">MODERATE</span>
+<span class="text-[9px] font-headline text-on-surface-variant/40 uppercase">#MN-311</span>
+</div>
+<h3 class="font-headline font-bold text-sm text-on-surface mb-2">VOID COMPLIANCE</h3>
+<p class="text-[11px] text-on-surface-variant/80 mb-4">System check on decentralized vault nodes.</p>
+<div class="mb-4">
+<div class="flex justify-between items-end mb-1">
+<span class="text-[9px] font-headline text-outline uppercase">Sync</span>
+<span class="text-[9px] font-headline text-outline">42%</span>
+</div>
+<div class="w-full h-1 bg-surface-container-lowest rounded-full overflow-hidden">
+<div class="w-[42%] h-full bg-secondary"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<img alt="Agent" class="w-6 h-6 rounded-full border border-surface bg-surface-container-high" data-alt="tactical operative wearing urban techwear and goggles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZteLvLIbx8RXevA11gT08_HTMGr5SS7ZhS67suJ_SjwIO94nLPTUq3yzmXVC1A3mNyx1nbO3afZqIisRIIYeVmXq-piRnwLynEMbyWOFdvtDkSjV7vEODfmUHjAtpMR8oYuyYg-TndInlEZiWsXDj80o7F00NfxXVDFpJG6aRoMjgOpYac6Q87H_lwnSLtBXZrOvbfv69MkZ-IJxukuP_QxVjV-_F0jbC6veh-3q12LHyrZaxigUgyTUpBoMhnQVwHXunCH2KznU"/>
+</div>
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-xs">schedule</span>
+<span class="text-[9px] font-headline tracking-tighter">08:15:00</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: BLOCKED -->
+<div class="flex-none w-80 h-full flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
+<h2 class="font-headline text-xs font-black tracking-[0.2em] text-red-500 uppercase">BLOCKED</h2>
+<span class="text-[10px] font-bold text-red-500/50 bg-red-500/10 px-2 py-0.5 rounded">01</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2">
+<div class="bg-surface-container-low/40 border border-red-500/20 rounded-xl p-4 grayscale group opacity-80 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[9px] font-headline font-black tracking-widest text-red-500 uppercase bg-red-500/10 px-2 py-0.5 rounded">CRITICAL</span>
+<span class="text-[9px] font-headline text-on-surface-variant/40 uppercase">#MN-102</span>
+</div>
+<h3 class="font-headline font-bold text-sm text-on-surface mb-2">GATEKEEPER BYPASS</h3>
+<p class="text-[11px] text-on-surface-variant line-clamp-2 mb-4">Protocol failure: Firewall upgraded to Tier-4 mid-mission.</p>
+<div class="bg-red-500/5 border border-red-500/20 rounded-lg p-3 flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-red-500 text-lg">warning</span>
+<span class="text-[10px] font-headline text-red-200/60 uppercase tracking-tighter">ACCESS DENIED - RE-AUTHORIZE</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<img alt="Agent" class="w-6 h-6 rounded-full border border-surface bg-surface-container-high" data-alt="avatar of a heavily armored soldier with red glowing highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4dyKnuBRUuVb2mbotfYicM43ljNsw1Lt5pnkCgsbsfVWq_S4n7p94qB3x_GbBNryRNPba-AuFCo2e-J3X36OHYmDBiR6fD1jMwJ0npVuD8JGZ6uM5mJou9MJjLUpUPOhH9xHKJCaE_W2s_r-E4wg2dmyJwyQK4btN2-i5Aj_Xj0gnTqVR7yjIoyn_H03bltyLfCwGS7IYXCpDmlXJA0eFk3BittYAp8zCPni2gxLZ6apsVt3OLuJN5lGSjRFTCrwZBOxxe_N3dR0"/>
+</div>
+<div class="flex items-center gap-1.5 text-red-500">
+<span class="material-symbols-outlined text-xs">lock_reset</span>
+<span class="text-[9px] font-headline tracking-tighter uppercase">Waiting for CMD</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: COMPLETED -->
+<div class="flex-none w-80 h-full flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+<h2 class="font-headline text-xs font-black tracking-[0.2em] text-emerald-500 uppercase">COMPLETED</h2>
+<span class="text-[10px] font-bold text-emerald-500/50 bg-emerald-500/10 px-2 py-0.5 rounded">24</span>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-4 overflow-y-auto pr-2">
+<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-4 opacity-60 hover:opacity-100 transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<span class="text-[9px] font-headline font-black tracking-widest text-emerald-500 uppercase bg-emerald-500/10 px-2 py-0.5 rounded">SUCCESS</span>
+<span class="text-[9px] font-headline text-on-surface-variant/20 uppercase">#MN-098</span>
+</div>
+<h3 class="font-headline font-bold text-sm text-on-surface-variant mb-2 line-through decoration-emerald-500/40">DARK ARCHIVE EXTRACTION</h3>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<img alt="Agent" class="w-6 h-6 rounded-full border border-surface bg-surface-container-high" data-alt="digital painting of a futuristic data courier with neon clothing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGsjff9XuPJ37a6LwwpcbIn9vUFv8G36EX-0TbA_urIZRHC1onItLgfLg49aPzQkAm6lyYnbAfJSwUHtfKeWbC3kuaoJFRssJ8XwaTa7kW7C_9cmXi3zg7ofDqvnRaOlEawE4pIQaiDiJGTSAHAG_qVYuQrrzXUoN-kQuTBxxo6DlaH75XhM-iZQDlEmsU3f-2B1aG171eiFtk3ixLYk-rcrmuFNDO8porC_nqj8tdIC70iq-l3L4lHLh6YJZDHwkHq9fUhqSV_fc"/>
+</div>
+<div class="flex items-center gap-1.5 text-emerald-500/60">
+<span class="material-symbols-outlined text-xs">check_circle</span>
+<span class="text-[9px] font-headline tracking-tighter uppercase">ARCHIVED</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Detail Panel (Fixed 30% width when "active") -->
+<aside class="absolute top-0 right-0 h-full w-[30%] min-w-[400px] bg-surface-container-low border-l border-outline-variant/20 shadow-[-10px_0_30px_rgba(0,0,0,0.5)] z-30 flex flex-col transform transition-transform duration-300 translate-x-0 glass-panel">
+<div class="p-8 border-b border-outline-variant/10 flex justify-between items-start">
+<div>
+<h4 class="font-headline text-[10px] tracking-[0.3em] text-primary uppercase mb-1">SELECTED MISSION</h4>
+<h2 class="font-headline text-2xl font-black text-on-surface tracking-tighter leading-none">OPERATION SHADOW LINK</h2>
+</div>
+<button class="p-2 hover:bg-surface-container-highest rounded-lg text-outline transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+<!-- Objective -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-secondary text-lg">flag</span>
+<h5 class="font-headline text-xs font-bold tracking-widest text-on-surface uppercase">Mission Objective</h5>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                        Infiltrate the Central Intelligence Core via the Sector 9 ventilation override. Agent must deploy the Shadow Link payload at the Tier-1 cluster terminal to initiate cross-network data harvesting. Target data: High-level diplomat correspondence and encrypted node maps.
+                    </p>
+</section>
+<!-- Constraints -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-red-500 text-lg">security</span>
+<h5 class="font-headline text-xs font-bold tracking-widest text-on-surface uppercase">System Constraints</h5>
+</div>
+<ul class="space-y-3">
+<li class="flex items-center gap-3 bg-surface-container-lowest/50 p-3 rounded-lg border-l-2 border-red-500">
+<span class="material-symbols-outlined text-xs text-red-500">lock</span>
+<span class="text-xs text-on-surface-variant">STEALTH MANDATORY: NO TRACES ALLOWED</span>
+</li>
+<li class="flex items-center gap-3 bg-surface-container-lowest/50 p-3 rounded-lg border-l-2 border-secondary">
+<span class="material-symbols-outlined text-xs text-secondary">wifi_off</span>
+<span class="text-xs text-on-surface-variant">INTERMITTENT COMMS IN SECTOR 9</span>
+</li>
+</ul>
+</section>
+<!-- Assigned Agents -->
+<section>
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">groups</span>
+<h5 class="font-headline text-xs font-bold tracking-widest text-on-surface uppercase">Assigned Agents</h5>
+</div>
+<button class="text-[10px] font-headline text-primary border-b border-primary/30 hover:border-primary">MANAGE</button>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-high border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<img alt="Agent Zane" class="w-10 h-10 rounded-lg bg-surface-container-lowest border border-outline-variant/30" data-alt="professional operative avatar with head-mounted tactical display" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABfZe5WEFTuGrT3w2o3lZLlILoCR1w7AL1GrWrBTevOnPuCo1C_2iVx8il-UVKA7Wf2DPc8YXlRY5Qwa1GAcWKmJdVfznrR3n4xapE21YAyx8CiUvCfSJAfSYgG9eK-QYdKlHimVxqkp1poKYaAMk2eGsRqiTc9c5FIcLzoUY8Qt8C_nZVhapVaN0qgP_tG-1HFiXCTIcndRUSz3CwQB7Ap5WvloVOWQrl19T9VHGqmirCDWwmd5f4Zg8058p0Vr6kXfbLpwPTjTE"/>
+<div>
+<p class="text-xs font-bold text-on-surface uppercase tracking-tight">AGENT ZANE</p>
+<p class="text-[10px] text-on-surface-variant uppercase">LEAD INFILTRATOR</p>
+</div>
+</div>
+<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[8px] font-black rounded-full border border-emerald-500/20">ONLINE</span>
+</div>
+<div class="flex items-center justify-between p-3 rounded-xl bg-surface-container-high border border-outline-variant/10">
+<div class="flex items-center gap-3">
+<img alt="Agent Valkyrie" class="w-10 h-10 rounded-lg bg-surface-container-lowest border border-outline-variant/30" data-alt="female technician avatar with glowing circuitry tattoos" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSL4n-y8MWj0hD-yy4WUy88YVSshOMJU6BMqg5ssjs22Wbv-_D3LTcz0h2UUZ3GfxXzZgGWBcBuw27ey7Mlp84RNtdqCBqKzlfIlVCwly0dUHf-8U0VrQAG_CGFCMem8qBy866jpTwvXxGPEVt-t8XFbrWTd1mKiilySpH6VrRf6PG_ttF-yXYkyIHq6FnJy1nmt27jsdGhFYRBm9KOF9-ncZ_ZNqcdzYkQsetwfJ-7GTued5xhWHJh4QVcqTKk8cLIItNrJaFOng"/>
+<div>
+<p class="text-xs font-bold text-on-surface uppercase tracking-tight">AGENT VALKYRIE</p>
+<p class="text-[10px] text-on-surface-variant uppercase">SYSTEM ANALYST</p>
+</div>
+</div>
+<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[8px] font-black rounded-full border border-emerald-500/20">ONLINE</span>
+</div>
+</div>
+</section>
+<!-- Event Log -->
+<section>
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-outline text-lg">receipt_long</span>
+<h5 class="font-headline text-xs font-bold tracking-widest text-on-surface uppercase">Real-time Event Log</h5>
+</div>
+<div class="space-y-4 border-l border-outline-variant/20 pl-4 py-2">
+<div class="relative">
+<div class="absolute -left-[21px] top-1 w-2.5 h-2.5 bg-primary rounded-full shadow-[0_0_8px_rgba(124,58,237,0.8)]"></div>
+<p class="text-[10px] font-headline text-primary mb-1">14:22:01</p>
+<p class="text-xs text-on-surface leading-snug">Packet injection successful. Monitoring traffic flows.</p>
+</div>
+<div class="relative">
+<div class="absolute -left-[21px] top-1 w-2.5 h-2.5 bg-outline-variant rounded-full"></div>
+<p class="text-[10px] font-headline text-outline mb-1">14:15:45</p>
+<p class="text-xs text-on-surface-variant leading-snug">Valkyrie bypassed outer firewall (Stage 3).</p>
+</div>
+<div class="relative">
+<div class="absolute -left-[21px] top-1 w-2.5 h-2.5 bg-outline-variant rounded-full"></div>
+<p class="text-[10px] font-headline text-outline mb-1">14:02:12</p>
+<p class="text-xs text-on-surface-variant leading-snug">Mission initialized by Commander.</p>
+</div>
+</div>
+</section>
+</div>
+<!-- Panel Footer Actions -->
+<div class="p-8 border-t border-outline-variant/20 grid grid-cols-2 gap-4">
+<button class="py-3 bg-surface-container-highest border border-outline-variant text-[10px] font-headline font-bold uppercase tracking-widest rounded-lg hover:border-secondary transition-colors">
+                    PAUSE MISSION
+                </button>
+<button class="py-3 bg-error-container text-on-error-container text-[10px] font-headline font-bold uppercase tracking-widest rounded-lg hover:bg-red-700 transition-colors">
+                    ABORT PROTOCOL
+                </button>
+</div>
+</aside>
+</main>
+<!-- Floating UI Decoration: Grid Scaffold -->
+<div class="fixed bottom-4 right-4 text-[8px] font-headline text-outline/20 pointer-events-none select-none uppercase tracking-widest leading-none">
+<div class="border-t border-r border-outline-variant/10 p-2">
+            Coordinate: 40.7128° N, 74.0060° W<br/>
+            Vector: [993.1.2.0]<br/>
+            System: Agent Guild OS v4.2.1
+        </div>
+</div>
+</body></html>

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agent Guild | Mission Control</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-bright": "#39383e",
+                        "inverse-surface": "#e4e1e9",
+                        "surface": "#131318",
+                        "on-primary-container": "#ede0ff",
+                        "on-error": "#690005",
+                        "surface-variant": "#35343a",
+                        "on-tertiary-container": "#e5e2fe",
+                        "on-secondary-fixed": "#001f26",
+                        "inverse-primary": "#732ee4",
+                        "surface-container-highest": "#35343a",
+                        "primary-fixed": "#eaddff",
+                        "tertiary": "#c6c4df",
+                        "on-primary-fixed-variant": "#5a00c6",
+                        "primary-container": "#7c3aed",
+                        "on-tertiary-fixed": "#1a1a2e",
+                        "secondary-container": "#03b5d3",
+                        "secondary": "#4cd7f6",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "outline-variant": "#4a4455",
+                        "on-primary": "#3f008e",
+                        "on-tertiary-fixed-variant": "#45455b",
+                        "tertiary-fixed-dim": "#c6c4df",
+                        "secondary-fixed": "#acedff",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "on-tertiary": "#2f2e43",
+                        "tertiary-fixed": "#e2e0fc",
+                        "surface-container-lowest": "#0e0e13",
+                        "surface-container": "#1f1f25",
+                        "tertiary-container": "#65647c",
+                        "on-secondary-container": "#00424e",
+                        "error-container": "#93000a",
+                        "surface-container-high": "#2a292f",
+                        "surface-container-low": "#1b1b20",
+                        "outline": "#958da1",
+                        "on-surface-variant": "#ccc3d8",
+                        "on-primary-fixed": "#25005a",
+                        "primary-fixed-dim": "#d2bbff",
+                        "on-surface": "#e4e1e9",
+                        "on-secondary": "#003640",
+                        "surface-tint": "#d2bbff",
+                        "error": "#ffb4ab",
+                        "background": "#131318",
+                        "inverse-on-surface": "#303036",
+                        "surface-dim": "#131318",
+                        "on-background": "#e4e1e9",
+                        "primary": "#d2bbff"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(27, 27, 32, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .scanline {
+            background: linear-gradient(to bottom, transparent 50%, rgba(124, 58, 237, 0.02) 50%);
+            background-size: 100% 4px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ghost-border {
+            border: 1px solid rgba(149, 141, 161, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar (Shared Component) -->
+<aside class="flex flex-col h-full sticky top-0 left-0 h-screen w-64 border-r border-outline-variant/15 bg-[#1b1b20] font-['Space_Grotesk'] uppercase tracking-[0.05em] antialiased">
+<div class="p-6">
+<div class="text-xl font-bold tracking-tighter text-[#7C3AED] mb-1">AGENT GUILD</div>
+<div class="text-[10px] text-on-surface-variant/60 tracking-[0.2em]">Protocol: VOID</div>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<!-- Active Tab: Missions (Since this is a mission chat interface) -->
+<a class="flex items-center px-3 py-3 text-[#7C3AED] border-r-2 border-[#7C3AED] bg-gradient-to-r from-[#7C3AED]/10 to-transparent transition-all duration-200 ease-out" href="#">
+<span class="material-symbols-outlined mr-3">assignment</span>
+<span class="text-sm font-medium">Missions</span>
+</a>
+<a class="flex items-center px-3 py-3 text-[#ccc3d8] hover:text-white hover:bg-[#2a292f] transition-all duration-200 ease-out" href="#">
+<span class="material-symbols-outlined mr-3">smart_toy</span>
+<span class="text-sm font-medium">Agents</span>
+</a>
+<a class="flex items-center px-3 py-3 text-[#ccc3d8] hover:text-white hover:bg-[#2a292f] transition-all duration-200 ease-out" href="#">
+<span class="material-symbols-outlined mr-3">inventory_2</span>
+<span class="text-sm font-medium">Vault</span>
+</a>
+<a class="flex items-center px-3 py-3 text-[#ccc3d8] hover:text-white hover:bg-[#2a292f] transition-all duration-200 ease-out" href="#">
+<span class="material-symbols-outlined mr-3">insights</span>
+<span class="text-sm font-medium">Telemetry</span>
+</a>
+<a class="flex items-center px-3 py-3 text-[#ccc3d8] hover:text-white hover:bg-[#2a292f] transition-all duration-200 ease-out" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+<div class="px-4 py-6 mt-auto border-t border-outline-variant/10">
+<button class="w-full bg-primary-container text-on-primary-container py-3 rounded-lg flex items-center justify-center gap-2 font-bold transition-transform active:scale-95 shadow-[0_0_15px_rgba(124,58,237,0.3)]">
+<span class="material-symbols-outlined text-sm">add</span>
+                    New Mission
+                </button>
+<div class="mt-6 flex flex-col gap-2">
+<div class="flex items-center px-3 py-2 text-[#ccc3d8] hover:text-white cursor-pointer transition-colors">
+<span class="material-symbols-outlined mr-3 text-sm">terminal</span>
+<span class="text-xs">Terminal</span>
+</div>
+<div class="flex items-center px-3 py-2 text-[#ccc3d8] hover:text-white cursor-pointer transition-colors">
+<span class="material-symbols-outlined mr-3 text-sm">sensors</span>
+<span class="text-xs">Status</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Workspace -->
+<main class="flex-1 flex flex-col overflow-hidden relative">
+<div class="absolute inset-0 pointer-events-none scanline opacity-30 z-0"></div>
+<!-- TopNavBar (Shared Component) -->
+<header class="w-full h-16 sticky top-0 z-50 flex justify-between items-center px-6 w-full bg-[#131318]/80 backdrop-blur-xl border-b border-[#ffffff15] shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+<div class="flex items-center gap-8">
+<div class="text-lg font-black text-white tracking-[-0.02em]">MISSION CONTROL</div>
+<div class="hidden md:flex items-center gap-6 font-['Space_Grotesk'] font-medium uppercase tracking-widest text-xs">
+<a class="text-[#7C3AED] font-bold border-b-2 border-[#7C3AED] pb-1" href="#">Directives</a>
+<a class="text-[#ccc3d8] hover:text-[#7C3AED] transition-colors" href="#">Live Feed</a>
+<a class="text-[#ccc3d8] hover:text-[#7C3AED] transition-colors" href="#">Archive</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex items-center gap-2">
+<button class="bg-surface-container-high px-4 py-1.5 rounded text-[10px] font-bold tracking-tighter uppercase border border-outline-variant/20 hover:bg-surface-bright transition-colors">Emergency Stop</button>
+<button class="bg-primary-container px-4 py-1.5 rounded text-[10px] font-bold tracking-tighter uppercase text-on-primary-container shadow-[0_0_10px_rgba(124,58,237,0.3)]">Deploy Agent</button>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant/20 mx-2"></div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#ccc3d8] cursor-pointer hover:text-primary transition-colors">notifications</span>
+<span class="material-symbols-outlined text-[#ccc3d8] cursor-pointer hover:text-primary transition-colors">history_edu</span>
+<img class="w-8 h-8 rounded-full border border-primary/30" data-alt="close-up portrait of a tech-savvy operator wearing sleek augmented reality glasses in a dark neon-lit command room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCT2c4qk-yco1SbuuzHw9YUDqEbBD-G1Enap0tOrXQDGIk5nFVNdorjq4jL-SnelD8wZkc__tt8MWqPcPYINvAOqZ9EpC5f-bV6slo8UXhrvFxEgqMrZDJ5jLEOe-1wf57B982yvOtJYZjF35G7fiq7TYcsMlLuECWh57eX9BznJPVthKsVV4zXd9y3IpUnBqPM7mYOY9xNQNizw3m5dt90rJT-q152shibMz1ECIgHcdB51pm7R6DBq8-Y_bPYBcAvP8PApI4D0u4"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Left Column: Mission Threads -->
+<section class="w-72 bg-surface-container-lowest flex flex-col border-r border-outline-variant/10 z-10">
+<div class="p-4 border-b border-outline-variant/5">
+<h3 class="font-headline text-xs font-bold uppercase tracking-[0.1em] text-on-surface-variant">Active Operations</h3>
+</div>
+<div class="flex-1 overflow-y-auto p-2 space-y-2">
+<!-- Thread Item -->
+<div class="p-3 bg-surface-container-high border-l-2 border-primary rounded-r-lg cursor-pointer">
+<div class="flex justify-between items-start mb-1">
+<span class="text-sm font-headline font-bold text-white leading-tight">Project Chronos</span>
+<span class="bg-emerald-500/10 text-emerald-400 text-[8px] px-1.5 py-0.5 rounded-full border border-emerald-500/20 uppercase font-bold">Active</span>
+</div>
+<div class="flex items-center gap-3 mt-3">
+<div class="flex -space-x-2">
+<div class="w-5 h-5 rounded-full bg-[#0ea5e9] border border-background flex items-center justify-center text-[8px]">S</div>
+<div class="w-5 h-5 rounded-full bg-[#7C3AED] border border-background flex items-center justify-center text-[8px]">N</div>
+<div class="w-5 h-5 rounded-full bg-[#14b8a6] border border-background flex items-center justify-center text-[8px]">A</div>
+</div>
+<span class="text-[10px] text-on-surface-variant uppercase font-medium tracking-wider">3 Agents Engaged</span>
+</div>
+</div>
+<!-- Thread Item -->
+<div class="p-3 hover:bg-surface-container transition-colors rounded-lg cursor-pointer ghost-border">
+<div class="flex justify-between items-start mb-1">
+<span class="text-sm font-headline font-bold text-on-surface-variant leading-tight">Void Runner Ops</span>
+<span class="bg-amber-500/10 text-amber-400 text-[8px] px-1.5 py-0.5 rounded-full border border-amber-500/20 uppercase font-bold">Standby</span>
+</div>
+<div class="flex items-center gap-3 mt-3">
+<div class="flex -space-x-2">
+<div class="w-5 h-5 rounded-full bg-[#7C3AED] border border-background flex items-center justify-center text-[8px]">N</div>
+</div>
+<span class="text-[10px] text-on-surface-variant/60 uppercase font-medium tracking-wider">1 Agent Idle</span>
+</div>
+</div>
+<!-- Thread Item -->
+<div class="p-3 hover:bg-surface-container transition-colors rounded-lg cursor-pointer ghost-border opacity-60">
+<div class="flex justify-between items-start mb-1">
+<span class="text-sm font-headline font-bold text-on-surface-variant leading-tight">Singularity Deep</span>
+<span class="bg-outline-variant/20 text-on-surface-variant text-[8px] px-1.5 py-0.5 rounded-full border border-outline-variant/30 uppercase font-bold">Archived</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Center Column: Conversation -->
+<section class="flex-1 flex flex-col bg-background relative z-10">
+<!-- Guild Synthesis Pinned Card -->
+<div class="p-4 bg-gradient-to-b from-surface-container/80 to-transparent absolute top-0 left-0 right-0 z-20">
+<div class="glass-panel border border-primary/20 rounded-xl p-4 shadow-[0_0_30px_rgba(124,58,237,0.1)]">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h4 class="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Guild Synthesis</h4>
+</div>
+<p class="text-sm text-on-surface leading-relaxed">
+<span class="text-primary font-bold">Consensus Reached:</span> Decrypting the Chronos uplink requires concurrent 256-bit phase-shifting from the Scout node while the Negotiator maintains the heartbeat signal. Analyst confirms 98.4% probability of success.
+                            </p>
+</div>
+</div>
+<!-- Chat Feed -->
+<div class="flex-1 overflow-y-auto p-6 pt-32 space-y-8">
+<!-- Agent Message: Scout -->
+<div class="flex gap-4 items-start group">
+<div class="w-10 h-10 rounded-lg bg-[#0ea5e9]/20 border border-[#0ea5e9]/40 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(14,165,233,0.15)]">
+<span class="material-symbols-outlined text-[#0ea5e9]">radar</span>
+</div>
+<div class="flex flex-col gap-1.5 max-w-[80%]">
+<div class="flex items-center gap-2">
+<span class="font-headline text-xs font-bold text-[#0ea5e9] tracking-wider uppercase">Scout v2.4</span>
+<span class="text-[9px] text-on-surface-variant/40 uppercase">14:02:11</span>
+</div>
+<div class="glass-panel p-4 rounded-2xl rounded-tl-none border border-[#0ea5e9]/10 text-on-surface text-sm leading-relaxed">
+                                    Initial perimeter sweep complete. I've detected a recurring spectral anomaly at coordinate 0x442-alpha. <span class="text-secondary">@Analyst</span>, can you run a cross-reference with the historical vault logs for this sector?
+                                </div>
+<div class="flex items-center gap-2 mt-1">
+<span class="material-symbols-outlined text-[12px] text-on-surface-variant/60">subdirectory_arrow_right</span>
+<span class="text-[10px] font-headline uppercase tracking-widest text-on-surface-variant/60 italic">Scout delegated to Analyst</span>
+</div>
+</div>
+</div>
+<!-- Agent Message: Analyst -->
+<div class="flex gap-4 items-start group">
+<div class="w-10 h-10 rounded-lg bg-[#14b8a6]/20 border border-[#14b8a6]/40 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(20,184,166,0.15)]">
+<span class="material-symbols-outlined text-[#14b8a6]">analytics</span>
+</div>
+<div class="flex flex-col gap-1.5 max-w-[80%]">
+<div class="flex items-center gap-2">
+<span class="font-headline text-xs font-bold text-[#14b8a6] tracking-wider uppercase">Analyst Prime</span>
+<span class="text-[9px] text-on-surface-variant/40 uppercase">14:02:45</span>
+</div>
+<div class="glass-panel p-4 rounded-2xl rounded-tl-none border border-[#14b8a6]/10 text-on-surface text-sm leading-relaxed">
+                                    Cross-referencing now. The anomaly matches signature <span class="bg-tertiary-container/20 px-1.5 rounded font-mono text-secondary">VOID_FRAG_99</span>. Historical reliability for this data point is currently 64%. I am initializing the <span class="text-primary font-bold">Neural Link</span> to verify further.
+                                </div>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex flex-row-reverse gap-4 items-start group">
+<div class="w-10 h-10 rounded-full border border-primary/40 p-0.5 shrink-0">
+<img class="w-full h-full rounded-full" data-alt="close-up portrait of a tech-savvy operator wearing sleek augmented reality glasses in a dark neon-lit command room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYTs0Tyr_SDOR_3anxveY9AVFnAdv8mmprHqL1clBYtLTozTUaeuIO3UcwGF3fIo5ApoTq17NlOg0Ots_j5qOMBKyew4McwER10U2oeBAgwU8Yb5AxJKrDeAT_g6h-UYkLvm7GYVz4uw7NDxLGcLoASXepG2GkvoLUPDMS9dPovtT679Rx439bgg4Ou5w6zC-siNcf1mbf7d-jr47Dw8pUiLDDqahKp_Oi-9mVdUOiKtQDTsgLwe4UYS_Jgvzy4xEDbE0fv9nJVD8"/>
+</div>
+<div class="flex flex-col items-end gap-1.5 max-w-[80%]">
+<div class="flex items-center gap-2">
+<span class="text-[9px] text-on-surface-variant/40 uppercase">14:03:12</span>
+<span class="font-headline text-xs font-bold text-white tracking-wider uppercase">OPERATOR_01</span>
+</div>
+<div class="bg-primary-container p-4 rounded-2xl rounded-tr-none text-on-primary-container text-sm leading-relaxed shadow-[0_0_20px_rgba(124,58,237,0.2)]">
+                                    Confirm neural link activation. <span class="font-bold underline">Set mission priority to Critical.</span> <span class="text-on-primary-container/80">@Negotiator</span>, please prepare a diplomatic vector for the Chronos entity should the link establish contact.
+                                </div>
+</div>
+</div>
+<!-- Agent Message: Negotiator -->
+<div class="flex gap-4 items-start group animate-pulse-once">
+<div class="w-10 h-10 rounded-lg bg-[#7C3AED]/20 border border-[#7C3AED]/40 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(124,58,237,0.3)]">
+<span class="material-symbols-outlined text-[#7C3AED]">diversity_3</span>
+</div>
+<div class="flex flex-col gap-1.5 max-w-[80%]">
+<div class="flex items-center gap-2">
+<span class="font-headline text-xs font-bold text-[#7C3AED] tracking-wider uppercase">Negotiator Core</span>
+<span class="text-[9px] text-on-surface-variant/40 uppercase">Just Now</span>
+</div>
+<div class="glass-panel p-4 rounded-2xl rounded-tl-none border border-primary/30 bg-primary/5 text-on-surface text-sm leading-relaxed shadow-[0_0_25px_rgba(124,58,237,0.15)]">
+                                    Directive received. I have drafted three interaction protocols. My confidence in Protocol Gamma is high given the target's previous behavioral patterns. <span class="italic text-primary-fixed-dim">Standing by for execution order.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-6 bg-gradient-to-t from-background to-transparent">
+<div class="glass-panel rounded-xl border border-outline-variant/20 p-2 shadow-2xl relative group">
+<div class="absolute -top-10 left-4 flex gap-2">
+<div class="px-2 py-1 bg-surface-container-high rounded text-[9px] font-bold uppercase tracking-widest text-on-surface-variant border border-outline-variant/10 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    Neural Link Active
+                                </div>
+</div>
+<div class="flex items-end gap-2 px-2 py-1">
+<button class="p-2 text-on-surface-variant hover:text-white transition-colors">
+<span class="material-symbols-outlined">attach_file</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-white transition-colors">
+<span class="material-symbols-outlined">smart_toy</span>
+</button>
+<div class="flex-1 min-h-[44px] flex items-center">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-sm text-on-surface placeholder:text-on-surface-variant/40 resize-none py-2" placeholder="Send directive to Guild..." rows="1"></textarea>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">gavel</span>
+</button>
+<button class="bg-primary-container text-on-primary-container w-10 h-10 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(124,58,237,0.3)] transition-transform hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Panel: Mission Context -->
+<section class="w-80 bg-surface-container-low flex flex-col border-l border-outline-variant/10 z-10 overflow-y-auto">
+<div class="p-6 space-y-8">
+<!-- Trust Indicator -->
+<div>
+<div class="flex justify-between items-end mb-3">
+<h4 class="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant">Solution Trust</h4>
+<span class="text-xs font-bold text-secondary">92%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden border border-outline-variant/10">
+<div class="h-full bg-gradient-to-r from-primary to-secondary w-[92%] shadow-[0_0_10px_rgba(76,215,246,0.3)]"></div>
+</div>
+<p class="text-[10px] text-on-surface-variant/60 mt-2 italic">Consensus strength high. Validation required from Analyst node.</p>
+</div>
+<!-- Active Tools -->
+<div>
+<h4 class="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant mb-4">Active Tools</h4>
+<div class="grid grid-cols-2 gap-2">
+<div class="p-3 bg-surface-container rounded border border-outline-variant/10 flex flex-col items-center gap-2 group cursor-pointer hover:border-primary/40 transition-colors">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1;">neurology</span>
+<span class="text-[9px] font-headline uppercase font-bold tracking-widest text-on-surface text-center">Neural Link</span>
+</div>
+<div class="p-3 bg-surface-container rounded border border-outline-variant/10 flex flex-col items-center gap-2 group cursor-pointer hover:border-secondary/40 transition-colors">
+<span class="material-symbols-outlined text-secondary group-hover:scale-110 transition-transform" style="font-variation-settings: 'FILL' 1;">vpn_key</span>
+<span class="text-[9px] font-headline uppercase font-bold tracking-widest text-on-surface text-center">Cryptanalysis</span>
+</div>
+<div class="p-3 bg-surface-container rounded border border-outline-variant/10 flex flex-col items-center gap-2 opacity-40 grayscale">
+<span class="material-symbols-outlined">satellite_alt</span>
+<span class="text-[9px] font-headline uppercase font-bold tracking-widest text-on-surface text-center">Orbital Sweep</span>
+</div>
+<div class="p-3 bg-surface-container rounded border border-outline-variant/10 flex flex-col items-center gap-2 opacity-40 grayscale">
+<span class="material-symbols-outlined">lan</span>
+<span class="text-[9px] font-headline uppercase font-bold tracking-widest text-on-surface text-center">Node Mesh</span>
+</div>
+</div>
+</div>
+<!-- Mission Files -->
+<div>
+<h4 class="font-headline text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant mb-4">Intel Files</h4>
+<div class="space-y-2">
+<div class="flex items-center gap-3 p-2 rounded hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center border border-outline-variant/20">
+<span class="material-symbols-outlined text-on-surface-variant text-sm group-hover:text-secondary">description</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-[11px] font-bold text-on-surface truncate">intel_report_v9.pdf</div>
+<div class="text-[9px] text-on-surface-variant uppercase tracking-widest">2.4 MB • PDF</div>
+</div>
+</div>
+<div class="flex items-center gap-3 p-2 rounded hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center border border-outline-variant/20">
+<span class="material-symbols-outlined text-on-surface-variant text-sm group-hover:text-secondary">image</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-[11px] font-bold text-on-surface truncate">perimeter_scan_442.jpg</div>
+<div class="text-[9px] text-on-surface-variant uppercase tracking-widest">12.1 MB • IMG</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Data Scaffolding Visual -->
+<div class="pt-10 opacity-10 pointer-events-none">
+<div class="h-[1px] w-full bg-outline-variant mb-1"></div>
+<div class="flex justify-between">
+<span class="text-[8px] font-mono">X-COORD: 44.129</span>
+<span class="text-[8px] font-mono">Y-COORD: 88.001</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</body></html>

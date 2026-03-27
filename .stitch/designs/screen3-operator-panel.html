@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Agent Guild | Operator Control Panel</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "#131318",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "surface-tint": "#d2bbff",
+                        "outline-variant": "#4a4455",
+                        "on-secondary-container": "#00424e",
+                        "background": "#131318",
+                        "surface-container": "#1f1f25",
+                        "on-surface-variant": "#ccc3d8",
+                        "surface-container-high": "#2a292f",
+                        "inverse-on-surface": "#303036",
+                        "surface-bright": "#39383e",
+                        "on-primary-fixed": "#25005a",
+                        "on-background": "#e4e1e9",
+                        "secondary-container": "#03b5d3",
+                        "on-surface": "#e4e1e9",
+                        "on-tertiary-fixed": "#1a1a2e",
+                        "surface-dim": "#131318",
+                        "on-primary-container": "#ede0ff",
+                        "tertiary-fixed-dim": "#c6c4df",
+                        "surface-container-lowest": "#0e0e13",
+                        "surface-container-low": "#1b1b20",
+                        "on-secondary": "#003640",
+                        "secondary-fixed": "#acedff",
+                        "on-primary": "#3f008e",
+                        "error-container": "#93000a",
+                        "on-primary-fixed-variant": "#5a00c6",
+                        "secondary": "#4cd7f6",
+                        "primary-fixed": "#eaddff",
+                        "on-tertiary-container": "#e5e2fe",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "error": "#ffb4ab",
+                        "on-secondary-fixed": "#001f26",
+                        "inverse-primary": "#732ee4",
+                        "on-tertiary": "#2f2e43",
+                        "tertiary-container": "#65647c",
+                        "tertiary": "#c6c4df",
+                        "outline": "#958da1",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed-variant": "#45455b",
+                        "surface-container-highest": "#35343a",
+                        "primary-fixed-dim": "#d2bbff",
+                        "inverse-surface": "#e4e1e9",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-fixed": "#e2e0fc",
+                        "primary-container": "#7c3aed",
+                        "surface-variant": "#35343a",
+                        "primary": "#d2bbff"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(27, 27, 32, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .scanline-overlay {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-white overflow-hidden">
+<!-- Sidebar Shell -->
+<aside class="fixed left-0 top-0 h-full z-50 flex flex-col bg-[#1b1b20]/80 backdrop-blur-xl h-screen border-r border-white/10 shadow-[32px_0_32px_rgba(19,19,24,0.08)] w-64">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-primary-container flex items-center justify-center text-[#7C3AED] drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<div>
+<h1 class="font-headline font-bold tracking-tight text-white leading-tight">Agent Guild</h1>
+<p class="font-label uppercase tracking-[0.05em] text-[10px] text-on-surface-variant opacity-60">Mission Control</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-2 mt-4">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-label uppercase tracking-[0.05em] text-xs transition-all duration-200 text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6]" href="#">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-label uppercase tracking-[0.05em] text-xs transition-all duration-200 text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6]" href="#">
+<span class="material-symbols-outlined">smart_toy</span> Agents
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-label uppercase tracking-[0.05em] text-xs transition-all duration-200 text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6]" href="#">
+<span class="material-symbols-outlined">assignment</span> Missions
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-label uppercase tracking-[0.05em] text-xs transition-all duration-200 text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6]" href="#">
+<span class="material-symbols-outlined">insights</span> Analytics
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-label uppercase tracking-[0.05em] text-xs transition-all duration-200 text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6]" href="#">
+<span class="material-symbols-outlined">security</span> Trust Ledger
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-label uppercase tracking-[0.05em] text-xs transition-all duration-200 bg-[#7C3AED]/20 text-[#7C3AED] border-r-2 border-[#7C3AED]" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_circle</span> Operator
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-label uppercase tracking-[0.05em] text-xs transition-all duration-200 text-[#ccc3d8] opacity-70 hover:bg-white/5 hover:text-[#4CD7F6]" href="#">
+<span class="material-symbols-outlined">settings</span> Settings
+            </a>
+</nav>
+<div class="p-4 border-t border-white/5">
+<div class="bg-surface-container-low rounded-lg p-3 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-sm">shield_person</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="font-label text-[10px] uppercase text-on-surface-variant truncate">Operator Level 4</p>
+<p class="text-xs font-bold text-white truncate">Commander Kai</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen relative flex flex-col">
+<!-- Top Navigation -->
+<header class="flex justify-between items-center w-full px-8 py-4 z-40 bg-[#131318]/50 backdrop-blur-md border-b border-white/5 sticky top-0">
+<div class="flex items-center gap-8">
+<span class="text-xl font-headline font-black text-white tracking-widest uppercase">Operator Control</span>
+<div class="hidden md:flex gap-6">
+<div class="flex items-center gap-2 px-3 py-1 rounded bg-surface-container-high border border-white/5">
+<span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+<span class="font-label text-[10px] uppercase tracking-widest text-[#ccc3d8]">Uptime: 99.9%</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 rounded bg-surface-container-high border border-white/5">
+<span class="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></span>
+<span class="font-label text-[10px] uppercase tracking-widest text-[#ccc3d8]">Missions: 24</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-white cursor-pointer transition-colors">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-primary-container rounded-full"></span>
+</div>
+<div class="h-8 w-[1px] bg-white/10"></div>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high hover:bg-surface-bright text-white rounded transition-all duration-200 border border-white/5 group">
+<span class="material-symbols-outlined text-secondary transition-transform group-hover:scale-110">search</span>
+<span class="font-label text-xs uppercase tracking-widest">Global Scan</span>
+</button>
+</div>
+</header>
+<!-- Control Panel View -->
+<div class="p-8 flex-1 overflow-y-auto space-y-8 max-w-[1600px] mx-auto w-full">
+<!-- Top Alert & Emergency Controls Row -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+<!-- System Health Summary -->
+<div class="lg:col-span-8 glass-panel p-6 rounded-xl relative overflow-hidden flex flex-col justify-between">
+<div class="absolute top-0 right-0 p-8 opacity-5">
+<span class="material-symbols-outlined text-9xl">analytics</span>
+</div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<h2 class="font-headline text-lg font-bold text-white uppercase tracking-wider mb-1">Guild Runtime Cluster</h2>
+<p class="text-sm text-on-surface-variant opacity-70">Active cluster nodes spanning 4 regions</p>
+</div>
+<span class="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-label text-[10px] uppercase tracking-widest flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Operational
+                        </span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="bg-surface-container-lowest p-4 rounded-lg border border-white/5">
+<p class="font-label text-[10px] uppercase text-on-surface-variant mb-2">CPU LOAD</p>
+<div class="flex items-end gap-2">
+<span class="text-2xl font-headline font-bold text-white leading-none">42.8%</span>
+<span class="material-symbols-outlined text-emerald-400 text-sm mb-1">trending_down</span>
+</div>
+<div class="mt-3 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container w-[42%]"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-lg border border-white/5">
+<p class="font-label text-[10px] uppercase text-on-surface-variant mb-2">MEM USAGE</p>
+<div class="flex items-end gap-2">
+<span class="text-2xl font-headline font-bold text-white leading-none">68.2GB</span>
+<span class="material-symbols-outlined text-amber-400 text-sm mb-1">trending_up</span>
+</div>
+<div class="mt-3 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary-container w-[68%]"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-lg border border-white/5">
+<p class="font-label text-[10px] uppercase text-on-surface-variant mb-2">LATENCY</p>
+<div class="flex items-end gap-2">
+<span class="text-2xl font-headline font-bold text-white leading-none">14ms</span>
+<span class="material-symbols-outlined text-emerald-400 text-sm mb-1">check_circle</span>
+</div>
+<div class="mt-3 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container w-[14%]"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-lg border border-white/5">
+<p class="font-label text-[10px] uppercase text-on-surface-variant mb-2">AGENTS</p>
+<div class="flex items-end gap-2">
+<span class="text-2xl font-headline font-bold text-white leading-none">12/12</span>
+<span class="material-symbols-outlined text-white/40 text-sm mb-1">group</span>
+</div>
+<div class="mt-3 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-white/20 w-[100%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Emergency Panel -->
+<div class="lg:col-span-4 bg-error-container/10 border border-error/20 rounded-xl p-6 flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-error text-3xl">emergency_home</span>
+<h2 class="font-headline text-lg font-bold text-error uppercase tracking-wider">Critical Override</h2>
+</div>
+<p class="text-sm text-on-error-container opacity-80 mb-6">Immediate manual intervention for all guild activities. Protocol 0: Full halt.</p>
+</div>
+<div class="space-y-3">
+<button class="w-full py-4 bg-error text-on-error font-headline font-bold uppercase tracking-widest rounded-lg hover:brightness-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,180,171,0.2)] flex items-center justify-center gap-3">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">power_settings_new</span> Kill Switch
+                        </button>
+<button class="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-label text-xs uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">pause_circle</span> Pause All Missions
+                        </button>
+</div>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column: Approvals & Usage -->
+<div class="lg:col-span-8 space-y-8">
+<!-- Approval Queue -->
+<section>
+<div class="flex justify-between items-end mb-4">
+<div>
+<h3 class="font-headline text-xl font-bold text-white">Action Approval Queue</h3>
+<p class="text-sm text-on-surface-variant">4 sensitive actions awaiting human validation</p>
+</div>
+<button class="text-secondary font-label text-[10px] uppercase tracking-widest hover:underline underline-offset-4">View All Requests</button>
+</div>
+<div class="space-y-4">
+<!-- Approval Card 1 -->
+<div class="glass-panel p-5 rounded-xl flex items-center gap-6 group hover:bg-surface-bright transition-colors duration-200">
+<div class="w-14 h-14 rounded-lg bg-surface-container-low border border-white/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">smart_toy</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-bold text-white">Agent Nexus-7</span>
+<span class="text-xs text-on-surface-variant opacity-60">in Mission #241</span>
+</div>
+<p class="text-sm text-on-surface-variant mb-2 font-mono bg-black/20 p-2 rounded">POST /v1/ledger/transfer_ownership?amount=150000</p>
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1 text-[10px] font-label uppercase text-rose-400">
+<span class="material-symbols-outlined text-sm">warning</span> High Risk
+                                        </span>
+<span class="flex items-center gap-1 text-[10px] font-label uppercase text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">history</span> Requested 2m ago
+                                        </span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded border border-white/10 text-on-surface-variant hover:bg-error/10 hover:text-error transition-all flex items-center justify-center">
+<span class="material-symbols-outlined">close</span>
+</button>
+<button class="px-4 py-2 bg-primary-container text-white font-label text-xs uppercase tracking-widest rounded-lg hover:brightness-110 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">check</span> Approve
+                                    </button>
+</div>
+</div>
+<!-- Approval Card 2 -->
+<div class="glass-panel p-5 rounded-xl flex items-center gap-6 group hover:bg-surface-bright transition-colors duration-200">
+<div class="w-14 h-14 rounded-lg bg-surface-container-low border border-white/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-3xl">smart_toy</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-bold text-white">Sentinel X</span>
+<span class="text-xs text-on-surface-variant opacity-60">in Data Scrubbing</span>
+</div>
+<p class="text-sm text-on-surface-variant mb-2 font-mono bg-black/20 p-2 rounded">DROP TABLE user_pii_cache CASCADE</p>
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1 text-[10px] font-label uppercase text-amber-400">
+<span class="material-symbols-outlined text-sm">info</span> Medium Risk
+                                        </span>
+<span class="flex items-center gap-1 text-[10px] font-label uppercase text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">history</span> Requested 8m ago
+                                        </span>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded border border-white/10 text-on-surface-variant hover:bg-error/10 hover:text-error transition-all flex items-center justify-center">
+<span class="material-symbols-outlined">close</span>
+</button>
+<button class="px-4 py-2 bg-primary-container text-white font-label text-xs uppercase tracking-widest rounded-lg hover:brightness-110 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">check</span> Approve
+                                    </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Usage Analytics -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="surface-container-low rounded-xl p-6 border border-white/5 relative group overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-primary-container/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<h4 class="font-label text-xs uppercase tracking-[0.2em] text-[#7C3AED] mb-4">Token Consumption</h4>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="text-3xl font-headline font-bold text-white">1.24M</span>
+<span class="text-xs text-on-surface-variant">tokens/hr</span>
+</div>
+<p class="text-[10px] font-label uppercase text-emerald-400 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">arrow_upward</span> 12% vs last hour
+                            </p>
+<div class="mt-6 flex gap-1 items-end h-16">
+<div class="w-full bg-primary-container/40 h-[40%] rounded-t-sm"></div>
+<div class="w-full bg-primary-container/40 h-[65%] rounded-t-sm"></div>
+<div class="w-full bg-primary-container/40 h-[50%] rounded-t-sm"></div>
+<div class="w-full bg-primary-container h-[85%] rounded-t-sm"></div>
+<div class="w-full bg-primary-container/40 h-[60%] rounded-t-sm"></div>
+<div class="w-full bg-primary-container/40 h-[75%] rounded-t-sm"></div>
+<div class="w-full bg-primary-container h-[95%] rounded-t-sm"></div>
+</div>
+</div>
+<div class="surface-container-low rounded-xl p-6 border border-white/5 relative group overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-secondary-container/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<h4 class="font-label text-xs uppercase tracking-[0.2em] text-[#4CD7F6] mb-4">Cost Tracking</h4>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="text-3xl font-headline font-bold text-white">$412.08</span>
+<span class="text-xs text-on-surface-variant">today</span>
+</div>
+<p class="text-[10px] font-label uppercase text-on-surface-variant flex items-center gap-1">
+                                Projection: $580.00 EOD
+                            </p>
+<div class="mt-6 flex flex-col gap-2">
+<div class="flex justify-between text-[10px] font-label uppercase">
+<span>Daily Budget</span>
+<span>$1,000.00</span>
+</div>
+<div class="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-container w-[41%]"></div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Incidents & Alerts -->
+<div class="lg:col-span-4 space-y-6">
+<section class="glass-panel rounded-xl overflow-hidden flex flex-col h-full">
+<div class="p-6 border-b border-white/5 bg-surface-container-high/50">
+<div class="flex justify-between items-center">
+<h3 class="font-headline font-bold text-white uppercase tracking-wider text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-rose-400">report</span> Incident Log
+                                </h3>
+<span class="bg-rose-500/10 text-rose-400 text-[10px] px-2 py-0.5 rounded font-label uppercase border border-rose-500/20">2 Unresolved</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto max-h-[600px] p-2">
+<!-- Incident Item -->
+<div class="p-4 rounded-lg hover:bg-white/5 transition-colors cursor-pointer border border-transparent hover:border-white/5">
+<div class="flex justify-between items-start mb-2">
+<span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 text-[9px] font-label uppercase tracking-widest border border-rose-500/30">Blocked Action</span>
+<span class="text-[10px] text-on-surface-variant opacity-50">14:22:01</span>
+</div>
+<h5 class="text-sm font-bold text-white mb-1">Policy Violation: Unauthorized API Call</h5>
+<p class="text-xs text-on-surface-variant line-clamp-2 mb-3">Agent Echo-9 attempted to access restricted domain 'external-untrusted.io'. Blocked by Trust Firewall.</p>
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full overflow-hidden bg-surface-container-lowest">
+<img class="w-full h-full object-cover" data-alt="Cybernetic robot head abstract blue glow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBXehfLgLwIioJ5ZZhFGwdPJv3VtVI4vsHzSHcpJHYDGQtDfdjI62gd4frrX_43jVtq9vIhrAqlMTtJB_XQ1tzVESAqMXVd1BT0qqstwGVnS9EgKvCXSPi9wLpdUzb7GNv9TrOeh0Z36hhw8HcOlNICu_xYKHAY6gyNERnMDkBbvXQCqkf2lgAxPNisnArk3QFH6uSdYzrHfGdLhxLF1egzIHwBzaEb4uSbyGWLrrMKHkOUzM_tSt8Qs35IeBVnuLiEcq6BtmSg28"/>
+</div>
+<span class="text-[10px] text-on-surface-variant font-label uppercase">Agent Echo-9</span>
+</div>
+</div>
+<div class="h-[1px] bg-white/5 mx-4 my-2"></div>
+<!-- Incident Item -->
+<div class="p-4 rounded-lg hover:bg-white/5 transition-colors cursor-pointer border border-transparent hover:border-white/5">
+<div class="flex justify-between items-start mb-2">
+<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[9px] font-label uppercase tracking-widest border border-amber-500/30">Warning</span>
+<span class="text-[10px] text-on-surface-variant opacity-50">13:58:45</span>
+</div>
+<h5 class="text-sm font-bold text-white mb-1">High Latency Spike Detected</h5>
+<p class="text-xs text-on-surface-variant line-clamp-2 mb-3">Response time for Node US-EAST-1 exceeded 2500ms. Traffic rerouted to US-WEST.</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">dns</span>
+<span class="text-[10px] text-on-surface-variant font-label uppercase">Infrastucture Node</span>
+</div>
+</div>
+<div class="h-[1px] bg-white/5 mx-4 my-2"></div>
+<!-- Incident Item -->
+<div class="p-4 rounded-lg hover:bg-white/5 transition-colors cursor-pointer border border-transparent hover:border-white/5">
+<div class="flex justify-between items-start mb-2">
+<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-label uppercase tracking-widest border border-emerald-500/30">Resolved</span>
+<span class="text-[10px] text-on-surface-variant opacity-50">12:15:30</span>
+</div>
+<h5 class="text-sm font-bold text-white mb-1">Agent Re-Sync Complete</h5>
+<p class="text-xs text-on-surface-variant line-clamp-2 mb-3">Manual approval session expired for Agent Titan. All pending sub-tasks rolled back.</p>
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full overflow-hidden bg-surface-container-lowest">
+<img class="w-full h-full object-cover" data-alt="Abstract digital neural network glowing lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATT4x06CJV3Q64hkQePKbCA5HgqRhPuKmpnZt5W3ukVByZi-reiZPXbgAoKShAdeqzIv71Fmax1FUOKZ8DAoatRpuWEqYknWDH6pYThOTcQl9q7vWHDDV_al7IREUGECDlTQBNdYeXC57Kb_fPSmF3-k93XMDONPuwlcN7nhM3b6XwStdWgFZvBsXnJn8VNaxLGAw6YChqwzFsfV0Y7D-uVeYLALy0PXUig3_IEvhCKqvTFozRrdxHqXSQu-5M9Uxv1NrGswQ0olY"/>
+</div>
+<span class="text-[10px] text-on-surface-variant font-label uppercase">Agent Titan</span>
+</div>
+</div>
+</div>
+<div class="p-4 bg-surface-container-highest/20 border-t border-white/5">
+<button class="w-full py-2 bg-white/5 hover:bg-white/10 text-white font-label text-[10px] uppercase tracking-widest rounded transition-all">
+                                Clear Resolved History
+                            </button>
+</div>
+</section>
+</div>
+</div>
+</div>
+<!-- Subtle Scanline Overlay for Tactical Feel -->
+<div class="fixed inset-0 scanline-overlay pointer-events-none z-[100] opacity-30"></div>
+</main>
+<!-- Map/Background Scaffolding (Aesthetic Only) -->
+<div class="fixed top-0 right-0 w-64 h-64 opacity-5 pointer-events-none -z-10 translate-x-32 -translate-y-32">
+<span class="material-symbols-outlined text-[300px]" style="font-variation-settings: 'wght' 100;">grid_on</span>
+</div>
+</body></html>

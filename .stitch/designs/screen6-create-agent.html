@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AGENT_GUILD_OS - CREATE AGENT</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface": "#131318",
+                        "surface-variant": "#35343a",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "inverse-on-surface": "#303036",
+                        "on-tertiary-fixed-variant": "#45455b",
+                        "on-surface-variant": "#ccc3d8",
+                        "surface-tint": "#d2bbff",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-lowest": "#0e0e13",
+                        "surface-container-low": "#1b1b20",
+                        "secondary-container": "#03b5d3",
+                        "error-container": "#93000a",
+                        "secondary-fixed": "#acedff",
+                        "surface-container-high": "#2a292f",
+                        "on-primary-fixed-variant": "#5a00c6",
+                        "inverse-primary": "#732ee4",
+                        "secondary": "#4cd7f6",
+                        "on-secondary-fixed": "#001f26",
+                        "outline": "#958da1",
+                        "tertiary-fixed-dim": "#c6c4df",
+                        "surface-dim": "#131318",
+                        "inverse-surface": "#e4e1e9",
+                        "primary-fixed": "#eaddff",
+                        "error": "#ffb4ab",
+                        "on-primary": "#3f008e",
+                        "on-tertiary-container": "#e5e2fe",
+                        "on-background": "#e4e1e9",
+                        "tertiary": "#c6c4df",
+                        "primary-fixed-dim": "#d2bbff",
+                        "on-error": "#690005",
+                        "on-surface": "#e4e1e9",
+                        "on-primary-fixed": "#25005a",
+                        "surface-container": "#1f1f25",
+                        "background": "#131318",
+                        "primary": "#d2bbff",
+                        "outline-variant": "#4a4455",
+                        "tertiary-container": "#65647c",
+                        "on-tertiary-fixed": "#1a1a2e",
+                        "tertiary-fixed": "#e2e0fc",
+                        "on-tertiary": "#2f2e43",
+                        "on-secondary": "#003640",
+                        "surface-container-highest": "#35343a",
+                        "surface-bright": "#39383e",
+                        "primary-container": "#7c3aed",
+                        "on-primary-container": "#ede0ff",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "on-secondary-container": "#00424e"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(42, 41, 47, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(149, 141, 161, 0.1);
+        }
+        .scanline {
+            background: linear-gradient(to bottom, transparent 50%, rgba(124, 58, 237, 0.02) 50%);
+            background-size: 100% 4px;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: #1b1b20;
+            height: 4px;
+            border-radius: 2px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #7C3AED;
+            box-shadow: 0 0 10px #7C3AED;
+            cursor: pointer;
+        }
+        .tactical-border {
+            clip-path: polygon(0 0, 95% 0, 100% 20%, 100% 100%, 5% 100%, 0 80%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container/30">
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar (from JSON) -->
+<aside class="flex flex-col h-full py-6 px-4 bg-[#1b1b20] dark:bg-[#1b1b20] h-screen w-64 border-r border-[#2a292f] shadow-[32px_0_32px_rgba(19,19,24,0.08)] z-50">
+<div class="flex flex-col gap-1 mb-10 px-2">
+<span class="text-xl font-bold tracking-tighter text-[#7C3AED] font-['Space_Grotesk'] uppercase">AGENT GUILD</span>
+<span class="font-['Space_Grotesk'] uppercase tracking-[0.05em] text-xs text-outline">MISSION CONTROL</span>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-['Space_Grotesk'] uppercase tracking-[0.05em] text-sm transition-all duration-200 ease-out text-[#ccc3d8] hover:text-[#7C3AED] hover:bg-[#2a292f]/50" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-['Space_Grotesk'] uppercase tracking-[0.05em] text-sm transition-all duration-200 ease-out text-[#7C3AED] bg-[#2a292f] border-r-2 border-[#7C3AED]" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Agent Guild</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-['Space_Grotesk'] uppercase tracking-[0.05em] text-sm transition-all duration-200 ease-out text-[#ccc3d8] hover:text-[#7C3AED] hover:bg-[#2a292f]/50" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span>Mission Control</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-['Space_Grotesk'] uppercase tracking-[0.05em] text-sm transition-all duration-200 ease-out text-[#ccc3d8] hover:text-[#7C3AED] hover:bg-[#2a292f]/50" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span>Intelligence</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg font-['Space_Grotesk'] uppercase tracking-[0.05em] text-sm transition-all duration-200 ease-out text-[#ccc3d8] hover:text-[#7C3AED] hover:bg-[#2a292f]/50" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-outline-variant/20">
+<button class="w-full py-3 bg-primary-container text-on-primary-container rounded-lg font-['Space_Grotesk'] font-bold uppercase tracking-wider text-xs scale-98 active:scale-95 transition-transform shadow-[0_0_20px_rgba(124,58,237,0.3)]">
+                    NEW DEPLOYMENT
+                </button>
+</div>
+</aside>
+<!-- Main Workspace -->
+<div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+<div class="absolute inset-0 scanline pointer-events-none opacity-20"></div>
+<!-- TopNavBar (from JSON) -->
+<header class="flex justify-between items-center px-8 w-full h-16 sticky top-0 z-40 bg-[#131318]/80 backdrop-blur-xl border-b border-[#2a292f]/50">
+<div class="flex items-center gap-8">
+<span class="font-black text-lg tracking-tighter text-[#7C3AED] font-['Space_Grotesk']">AGENT_GUILD_OS</span>
+<nav class="hidden md:flex gap-6">
+<a class="font-['Space_Grotesk'] font-medium uppercase text-xs tracking-widest text-[#ccc3d8] hover:text-white transition-colors" href="#">Directives</a>
+<a class="font-['Space_Grotesk'] font-medium uppercase text-xs tracking-widest text-[#4CD7F6] border-b border-[#4CD7F6] pb-1" href="#">Registry</a>
+<a class="font-['Space_Grotesk'] font-medium uppercase text-xs tracking-widest text-[#ccc3d8] hover:text-white transition-colors" href="#">Logs</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex items-center bg-surface-container-lowest px-3 py-1.5 rounded-md border border-outline-variant/20">
+<span class="material-symbols-outlined text-sm text-outline mr-2">search</span>
+<input class="bg-transparent border-none text-[10px] focus:ring-0 text-on-surface p-0 w-32 font-['Space_Grotesk'] uppercase tracking-widest" placeholder="QUERY DATABASE..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary transition-colors">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-secondary transition-colors">terminal</button>
+<div class="w-8 h-8 rounded-full border border-primary/30 flex items-center justify-center bg-surface-container-high overflow-hidden">
+<img alt="User" class="w-full h-full object-cover" data-alt="Cybernetic user portrait with glowing interface elements and dark purple color palette" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDH-K9wOfBKrSrhSe3F0Asnf1t44E-1j5d3qu7VRGBa4NJdKOibfKYFaVyzQVrSgiaf_S_g7aCQDa3iEaz-RZBxQM1tOkdOwHpQWjD6Jke3ifwQ1D-P5BIMefr2BkGN_2iqV2XPYvRMTmKJzEDe6S00ECx_1viR3mRZpHqb7VrWxPTfFxUvyojMCTPPTRpYzyC_zsF-lBJ0bLmOrMEGFUpP5E3jOgY-uRiT14-4usjNo6Pp89Nos7QdV6WoB3jMkmxnZg-Y88kBCzI"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto p-8 relative">
+<div class="max-w-6xl mx-auto space-y-8 pb-12">
+<div class="flex items-end justify-between border-b border-outline-variant/10 pb-4">
+<div>
+<h1 class="text-3xl font-bold font-headline tracking-tighter text-on-surface">AGENT_INITIALIZATION</h1>
+<p class="text-outline text-xs font-label uppercase tracking-widest mt-1">Status: CONFIGURATION_MODE_ACTIVE</p>
+</div>
+<div class="flex gap-4">
+<button class="px-6 py-2 rounded border border-outline-variant/30 text-xs font-label tracking-widest uppercase hover:bg-surface-container-high transition-all text-outline">Save as Template</button>
+<button class="px-8 py-2 rounded bg-primary-container text-on-primary-container text-xs font-label tracking-widest font-bold uppercase shadow-[0_0_15px_rgba(124,58,237,0.4)] hover:shadow-[0_0_25px_rgba(124,58,237,0.6)] transition-all">Create Agent</button>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-6">
+<!-- Left Configuration Column -->
+<div class="col-span-12 lg:col-span-8 space-y-6">
+<!-- Identification Panel -->
+<section class="glass-panel p-6 rounded-xl relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+<h2 class="text-xs font-label uppercase tracking-[0.2em] text-secondary mb-6 flex items-center gap-2">
+<span class="w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
+                                    Identity &amp; Core
+                                </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-4">
+<div class="space-y-1">
+<label class="text-[10px] font-label uppercase tracking-widest text-outline pl-1">Agent Designation</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-outline-variant/20 rounded-lg focus:border-primary focus:ring-1 focus:ring-primary/30 font-headline uppercase tracking-tighter py-3 px-4 transition-all" placeholder="E.G. NEURAL_WRAITH" type="text"/>
+<div class="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-primary/40 rounded-br-lg pointer-events-none"></div>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] font-label uppercase tracking-widest text-outline pl-1">Primary Model Architecture</label>
+<select class="w-full bg-surface-container-lowest border-outline-variant/20 rounded-lg focus:border-secondary focus:ring-1 focus:ring-secondary/30 font-body text-sm py-3 px-4 transition-all">
+<option>GPT-4o (Hyper-Intelligence)</option>
+<option>Claude 3.5 Sonnet (Nuanced Analysis)</option>
+<option>Llama 3 (Open Core)</option>
+<option>Custom Nexus Node</option>
+</select>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center group">
+<div class="relative w-32 h-32">
+<div class="absolute inset-0 bg-primary/20 rounded-full blur-xl group-hover:bg-primary/40 transition-all duration-500"></div>
+<div class="relative w-full h-full rounded-full border-2 border-primary-container/50 bg-surface-container-low flex items-center justify-center overflow-hidden">
+<img alt="Avatar Preview" class="w-3/4 h-3/4 opacity-80 group-hover:scale-110 transition-transform duration-500" data-alt="Sleek abstract futuristic AI agent silhouette with violet light glowing from within a crystalline structure" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN9Ewi2z2co33eQ7vsPvZzKhb9K0rdq0D8MNZGHSvsMMUJ_tpy5SfRoWmGSaIJ4z8lJYFdQm2-R3hMBTSeAtj9J8XSaM_RVdd33t8lBsgfjBTxw8UprDBDVCL13ZGZcHdYvseE9c7V_LZGp_DVUTQJS5_Ff3t8HhHIElrtgIBb_kFLW_tVb4kgytzlIhduXmGKxOJMOn4Rafpi3rAf-Tx0DqExJghrg-tqVNTnHYieGqLR93qg7KVWuklcxQTa0cTvJpqLm6DDL2Y"/>
+</div>
+<button class="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-surface-bright border border-outline-variant flex items-center justify-center hover:bg-primary transition-colors">
+<span class="material-symbols-outlined text-sm">edit</span>
+</button>
+</div>
+<span class="text-[9px] font-label uppercase tracking-[0.3em] text-outline mt-4">AVATAR_PREVIEW</span>
+</div>
+</div>
+</section>
+<!-- Role Matrix -->
+<section class="glass-panel p-6 rounded-xl">
+<h2 class="text-xs font-label uppercase tracking-[0.2em] text-secondary mb-6">Operational Role Matrix</h2>
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+<!-- Role Cards -->
+<button class="group flex flex-col items-center p-4 rounded-lg bg-surface-container-lowest border border-outline-variant/10 hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-2xl mb-2 text-outline group-hover:text-primary transition-colors">travel_explore</span>
+<span class="text-[10px] font-label uppercase tracking-widest group-hover:text-on-surface transition-colors">Scout</span>
+</button>
+<button class="group flex flex-col items-center p-4 rounded-lg bg-primary-container/10 border border-primary/40 transition-all">
+<span class="material-symbols-outlined text-2xl mb-2 text-primary">analytics</span>
+<span class="text-[10px] font-label uppercase tracking-widest text-on-surface">Analyst</span>
+</button>
+<button class="group flex flex-col items-center p-4 rounded-lg bg-surface-container-lowest border border-outline-variant/10 hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-2xl mb-2 text-outline group-hover:text-primary transition-colors">settings_input_component</span>
+<span class="text-[10px] font-label uppercase tracking-widest group-hover:text-on-surface transition-colors">Operator</span>
+</button>
+<button class="group flex flex-col items-center p-4 rounded-lg bg-surface-container-lowest border border-outline-variant/10 hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-2xl mb-2 text-outline group-hover:text-primary transition-colors">handshake</span>
+<span class="text-[10px] font-label uppercase tracking-widest group-hover:text-on-surface transition-colors">Negotiator</span>
+</button>
+<button class="group flex flex-col items-center p-4 rounded-lg bg-surface-container-lowest border border-outline-variant/10 hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-2xl mb-2 text-outline group-hover:text-primary transition-colors">send</span>
+<span class="text-[10px] font-label uppercase tracking-widest group-hover:text-on-surface transition-colors">Publisher</span>
+</button>
+</div>
+</section>
+<!-- Persona & Sliders -->
+<section class="glass-panel p-6 rounded-xl">
+<h2 class="text-xs font-label uppercase tracking-[0.2em] text-secondary mb-8">Persona Tuning Sliders</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+<div class="space-y-3">
+<div class="flex justify-between text-[10px] font-label uppercase tracking-widest text-outline">
+<span>Cautious</span>
+<span>Bold</span>
+</div>
+<input class="w-full cursor-pointer accent-primary" type="range" value="30"/>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-[10px] font-label uppercase tracking-widest text-outline">
+<span>Analytical</span>
+<span>Creative</span>
+</div>
+<input class="w-full cursor-pointer accent-primary" type="range" value="80"/>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-[10px] font-label uppercase tracking-widest text-outline">
+<span>Objective</span>
+<span>Persuasive</span>
+</div>
+<input class="w-full cursor-pointer accent-primary" type="range" value="65"/>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between text-[10px] font-label uppercase tracking-widest text-outline">
+<span>Informal</span>
+<span>Formal</span>
+</div>
+<input class="w-full cursor-pointer accent-primary" type="range" value="40"/>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Summary Column -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<!-- Permissions Summary -->
+<section class="glass-panel p-6 rounded-xl border-l-4 border-l-secondary/50 h-full flex flex-col">
+<h2 class="text-xs font-label uppercase tracking-[0.2em] text-secondary mb-6 flex items-center justify-between">
+                                    Security Clearance
+                                    <span class="px-2 py-0.5 bg-secondary-container/20 text-secondary text-[8px] rounded border border-secondary/30">LEVEL_03</span>
+</h2>
+<div class="flex-1 space-y-4">
+<div class="p-4 rounded-lg bg-surface-container-lowest border border-outline-variant/10 space-y-3">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-emerald-400 text-lg">check_circle</span>
+<div>
+<p class="text-[10px] font-label uppercase tracking-widest text-on-surface">Mission Log Access</p>
+<p class="text-[9px] text-outline mt-0.5">READ-ONLY access to tactical archive data.</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-emerald-400 text-lg">check_circle</span>
+<div>
+<p class="text-[10px] font-label uppercase tracking-widest text-on-surface">Communication Link</p>
+<p class="text-[9px] text-outline mt-0.5">WRITE-ACCESS to secure terminal channels.</p>
+</div>
+</div>
+<div class="flex items-start gap-3 opacity-40">
+<span class="material-symbols-outlined text-error text-lg">cancel</span>
+<div>
+<p class="text-[10px] font-label uppercase tracking-widest text-on-surface">Core Override</p>
+<p class="text-[9px] text-outline mt-0.5">DISABLED - Requires Commander authorization.</p>
+</div>
+</div>
+</div>
+<div class="space-y-4 pt-4">
+<h3 class="text-[10px] font-label uppercase tracking-widest text-outline pl-1">Specialty Tag Deployment</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-surface-container-high rounded text-[10px] font-label text-secondary border border-secondary/20 flex items-center gap-1">
+                                                Cryptography <button class="material-symbols-outlined text-[12px]">close</button>
+</span>
+<span class="px-3 py-1 bg-surface-container-high rounded text-[10px] font-label text-secondary border border-secondary/20 flex items-center gap-1">
+                                                Neural Mapping <button class="material-symbols-outlined text-[12px]">close</button>
+</span>
+<button class="px-3 py-1 bg-surface-container-lowest rounded text-[10px] font-label text-outline border border-dashed border-outline-variant/30 hover:border-primary/50 hover:text-primary transition-all">
+                                                + ADD_TAG
+                                            </button>
+</div>
+</div>
+</div>
+<div class="mt-8 p-4 rounded-lg bg-primary-container/5 border border-primary/20">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-lg">bolt</span>
+<span class="text-[10px] font-label uppercase tracking-[0.15em] text-primary">Real-time Efficiency Est.</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-primary to-secondary w-3/4 h-full"></div>
+</div>
+<div class="flex justify-between mt-2 text-[9px] font-label uppercase text-outline">
+<span>Latency: 12ms</span>
+<span>Node: AX-09</span>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- Decorative Blueprint Scaffolding -->
+<div class="absolute bottom-4 right-4 pointer-events-none opacity-10">
+<svg class="text-outline" fill="none" height="200" stroke="currentColor" viewbox="0 0 100 100" width="200">
+<path d="M0 50H100M50 0V100" stroke-dasharray="2 2"></path>
+<circle cx="50" cy="50" r="40" stroke-dasharray="4 4"></circle>
+<rect height="60" stroke-width="0.5" width="60" x="20" y="20"></rect>
+</svg>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>
