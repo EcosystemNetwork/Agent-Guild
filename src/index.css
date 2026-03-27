@@ -1,0 +1,14 @@
+/* Base reset — design tokens live in styles/index.css */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100svh;
+}

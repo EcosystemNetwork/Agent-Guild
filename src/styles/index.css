@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import "tailwindcss";
+
+/* ── Design Tokens from .stitch/DESIGN.md ── */
+@theme {
+  /* Surface Hierarchy */
+  --color-bg: #0A0A0F;
+  --color-surface: #131318;
+  --color-surface-dim: #131318;
+  --color-surface-container-lowest: #0e0e13;
+  --color-surface-container-low: #1b1b20;
+  --color-surface-container: #1f1f25;
+  --color-surface-container-high: #2a292f;
+  --color-surface-container-highest: #35343a;
+  --color-surface-bright: #39383e;
+  --color-surface-variant: #35343a;
+
+  /* Primary: Electric Violet */
+  --color-primary: #d2bbff;
+  --color-primary-container: #7c3aed;
+  --color-primary-fixed: #eaddff;
+  --color-primary-fixed-dim: #d2bbff;
+  --color-on-primary: #3f008e;
+  --color-on-primary-container: #ede0ff;
+  --color-inverse-primary: #732ee4;
+
+  /* Secondary: Neon Cyan */
+  --color-secondary: #4cd7f6;
+  --color-secondary-container: #03b5d3;
+  --color-secondary-fixed: #acedff;
+  --color-secondary-fixed-dim: #4cd7f6;
+  --color-on-secondary: #003640;
+  --color-on-secondary-container: #00424e;
+
+  /* Tertiary: Deep Indigo */
+  --color-tertiary: #c6c4df;
+  --color-tertiary-container: #65647c;
+  --color-on-tertiary: #2f2e43;
+
+  /* Text/On Surface */
+  --color-on-surface: #e4e1e9;
+  --color-on-surface-variant: #ccc3d8;
+  --color-on-background: #e4e1e9;
+  --color-inverse-surface: #e4e1e9;
+  --color-inverse-on-surface: #303036;
+  --color-surface-tint: #d2bbff;
+
+  /* Outline */
+  --color-outline: #958da1;
+  --color-outline-variant: #4a4455;
+
+  /* Error */
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error: #690005;
+  --color-on-error-container: #ffdad6;
+
+  /* Status Colors */
+  --color-status-online: #10B981;
+  --color-status-busy: #F59E0B;
+  --color-status-offline: #F43F5E;
+
+  /* Typography */
+  --font-headline: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'Space Grotesk', sans-serif;
+}
+
+/* ── Base Styles ── */
+body {
+  background-color: var(--color-bg);
+  background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.03) 1px, transparent 0);
+  background-size: 32px 32px;
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Glass Panel ── */
+.glass-panel {
+  background: rgba(27, 27, 32, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(124, 58, 237, 0.15);
+}
+
+.glass-panel-subtle {
+  background: rgba(27, 27, 32, 0.4);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(149, 141, 161, 0.1);
+}
+
+/* ── Scanline Overlay ── */
+.scanline {
+  background: linear-gradient(to bottom, transparent 50%, rgba(124, 58, 237, 0.02) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+
+/* ── Material Symbols ── */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
+/* ── Agent Card Glow ── */
+.agent-card-glow:hover {
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
+}
+
+/* ── Custom Scrollbar ── */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.3);
+  border-radius: 9999px;
+}
+
+/* ── Header glow line ── */
+.header-glow {
+  background: linear-gradient(90deg, transparent 0%, #7c3aed 30%, #4cd7f6 70%, transparent 100%);
+  height: 1px;
+  opacity: 0.5;
+}
+
+/* ── Glow Utilities ── */
+.glow-violet {
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.2);
+}
+.glow-cyan {
+  box-shadow: 0 0 12px rgba(76, 215, 246, 0.2);
+}
+.glow-emerald {
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+}
+
+/* ── Sidebar label visibility ── */
+/* On mobile when sidebar is open, labels are always visible */
+@media (max-width: 1023px) {
+  .sidebar-label {
+    opacity: 1 !important;
+  }
+}
+/* On desktop, labels appear on sidebar hover via group-hover */
+@media (min-width: 1024px) {
+  .group\/sidebar:hover .sidebar-label {
+    opacity: 1 !important;
+  }
+}
+
+/* ── Line clamp utility ── */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
