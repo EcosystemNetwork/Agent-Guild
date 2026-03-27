@@ -163,7 +163,38 @@ export interface ToolAction {
   error: string | null
 }
 
-export type OperatorAction = 'retry' | 'stop' | 'fork' | 'escalate'
+export type OperatorAction = 'retry' | 'stop' | 'fork' | 'escalate' | 'call'
+
+// ── Voice Call Types (Bland.ai) ──
+
+export type CallStatus = 'queued' | 'ringing' | 'in-progress' | 'completed' | 'failed' | 'no-answer'
+
+export interface VoiceCall {
+  id: string
+  callId: string | null
+  phoneNumber: string
+  status: CallStatus
+  missionId: string | null
+  channelId: string
+  launchedBy: string
+  launchedAt: string
+  completedAt: string | null
+  duration: number | null
+  summary: string | null
+  transcript: string | null
+  recordingUrl: string | null
+  pathwayId: string | null
+  requestData: Record<string, unknown>
+  error: string | null
+}
+
+export interface VoiceCallLaunchRequest {
+  phoneNumber: string
+  missionId?: string
+  channelId: string
+  pathwayId?: string
+  requestData?: Record<string, unknown>
+}
 
 export interface MissionLaunchRequest {
   name: string
@@ -173,6 +204,61 @@ export interface MissionLaunchRequest {
   context: string
   priority: Priority
   requiresApproval: boolean
+}
+
+// ── Airbyte Integration Types ──
+
+export type AirbyteSyncStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled'
+
+export interface AirbyteConnection {
+  connectionId: string
+  name: string
+  sourceId: string
+  sourceName: string
+  status: 'active' | 'inactive' | 'deprecated'
+  schedule: string
+  lastSyncAt: string | null
+  lastSyncStatus: AirbyteSyncStatus | null
+}
+
+export interface AirbyteSyncJob {
+  jobId: string
+  connectionId: string
+  status: AirbyteSyncStatus
+  startedAt: string
+  completedAt: string | null
+  bytesLoaded: number
+  recordsLoaded: number
+  error: string | null
+}
+
+export interface AirbyteSyncedRecord {
+  stream: string
+  data: Record<string, unknown>
+  syncedAt: string
+}
+
+export interface AirbyteMissionContext {
+  missionId: string
+  connectionId: string
+  sourceName: string
+  syncStatus: AirbyteSyncStatus
+  lastSyncAt: string | null
+  records: AirbyteSyncedRecord[]
+  freshnessMs: number
+}
+
+// ── Connected Account Types ──
+
+export interface ConnectedAccount {
+  provider: string
+  label: string
+  icon: string
+  description: string
+  color: string
+  scopes: string[]
+  connected?: boolean
+  connectedAt?: string
 }
 
 // ── Async Data State ──

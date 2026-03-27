@@ -14,11 +14,32 @@ import {
   loadSessionMeta,
 } from '../api/openclaw'
 import { useMissions } from '../contexts/MissionContext'
+import { useAirbyte } from '../contexts/AirbyteContext'
+import { launchVoiceCall, subscribeToVoiceCalls, getCallsForChannel } from '../services/bland'
+import type { VoiceCall } from '../types'
 import PageHeader from '../components/ui/PageHeader'
 import GlassPanel from '../components/ui/GlassPanel'
 import ProgressBar from '../components/ui/ProgressBar'
 import StatusChip from '../components/ui/StatusChip'
 import Icon from '../components/ui/Icon'
+
+const callStatusColor: Record<string, string> = {
+  'queued': '#94A3B8',
+  'ringing': '#F59E0B',
+  'in-progress': '#10B981',
+  'completed': '#10B981',
+  'failed': '#F43F5E',
+  'no-answer': '#F59E0B',
+}
+
+const callStatusIcon: Record<string, string> = {
+  'queued': 'hourglass_top',
+  'ringing': 'ring_volume',
+  'in-progress': 'call',
+  'completed': 'call_end',
+  'failed': 'call_missed',
+  'no-answer': 'phone_missed',
+}
 
 const agentAvatarColor: Record<string, string> = {
   'CIPHER-7': '#10B981',
@@ -35,6 +56,7 @@ const agentAvatarColor: Record<string, string> = {
 
 export default function CommsPage() {
   const { executions } = useMissions()
+  const { getMissionContext: getAirbyteContext, triggerMissionSync } = useAirbyte()
   const [activeChannel, setActiveChannel] = useState('general')
   const [input, setInput] = useState('')
   const [localMessages, setLocalMessages] = useState<Record<string, ChatMessage[]>>(chatMessages)
@@ -62,7 +84,72 @@ export default function CommsPage() {
   const messages = isExecChannel ? [] : (localMessages[activeChannel] || [])
   const pinnedMessages = messages.filter(m => m.pinned)
   const context = !isExecChannel && channel.missionId ? missionContext[channel.missionId] : null
+  const airbyteContexts = !isExecChannel && channel.missionId ? getAirbyteContext(channel.missionId) : []
+  const hasAirbyteContext = airbyteContexts.length > 0
+  const [isSyncing, setIsSyncing] = useState(false)
   const currentSessionKey = !isExecChannel ? (sessionKeys[activeChannel] || deriveSessionKey(channel)) : ''
+
+  // ── Voice Call State ──
+  const [showCallModal, setShowCallModal] = useState(false)
+  const [callPhone, setCallPhone] = useState('')
+  const [callLaunching, setCallLaunching] = useState(false)
+  const [channelCalls, setChannelCalls] = useState<VoiceCall[]>([])
+  const [expandedCallId, setExpandedCallId] = useState<string | null>(null)
+
+  // Subscribe to voice call updates
+  useEffect(() => {
+    setChannelCalls(getCallsForChannel(activeChannel))
+    const unsub = subscribeToVoiceCalls(() => {
+      setChannelCalls(getCallsForChannel(activeChannel))
+    })
+    return unsub
+  }, [activeChannel])
+
+  const handleLaunchCall = async () => {
+    if (!callPhone.trim() || callLaunching) return
+    setCallLaunching(true)
+    try {
+      const call = await launchVoiceCall({
+        phoneNumber: callPhone.trim(),
+        missionId: channel.missionId,
+        channelId: activeChannel,
+        requestData: channel.missionId && context ? {
+          mission_name: channel.name,
+          objective: context.objective,
+          status: context.status,
+          threats: context.threats,
+        } : undefined,
+      })
+      // Post system message about the call
+      const callMsg: ChatMessage = {
+        id: `msg-call-${call.id}`,
+        from: 'SYSTEM',
+        fromAvatar: 'SY',
+        to: activeChannel,
+        content: `Voice escalation initiated → ${callPhone.trim()}${channel.missionId ? ` (${channel.missionId})` : ''}`,
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        channel: activeChannel,
+        type: 'system',
+      }
+      appendMessage(activeChannel, callMsg)
+      setCallPhone('')
+      setShowCallModal(false)
+    } catch (err) {
+      const errMsg: ChatMessage = {
+        id: `msg-callerr-${Date.now()}`,
+        from: 'SYSTEM',
+        fromAvatar: 'SY',
+        to: activeChannel,
+        content: `Call failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        channel: activeChannel,
+        type: 'alert',
+      }
+      appendMessage(activeChannel, errMsg)
+    } finally {
+      setCallLaunching(false)
+    }
+  }
 
   // Check gateway health on mount
   useEffect(() => {
@@ -149,22 +236,33 @@ export default function CommsPage() {
     if (gatewayStatus === 'ok' && targetAgent) {
       setIsStreaming(true)
 
-      // Build conversation history — prepend pinned mission context as system message
+      // Build conversation history — prepend synced Airbyte context (or static fallback)
       const history: ChatCompletionMessage[] = []
       if (channel.missionId) {
-        const ctx = missionContext[channel.missionId]
-        if (ctx) {
-          history.push({
-            role: 'system',
-            content: [
-              `Mission: ${channel.missionId}`,
-              `Objective: ${ctx.objective}`,
-              `Status: ${ctx.status}`,
-              `Progress: ${ctx.progress}%`,
-              ctx.threats.length > 0 ? `Active Threats: ${ctx.threats.join('; ')}` : '',
-              `Assigned Agents: ${ctx.agents.join(', ')}`,
-            ].filter(Boolean).join('\n'),
-          })
+        if (hasAirbyteContext) {
+          const lines: string[] = [`Mission: ${channel.missionId}`]
+          for (const src of airbyteContexts) {
+            lines.push(`\n[Source: ${src.sourceName} — synced ${src.lastSyncAt ? new Date(src.lastSyncAt).toLocaleTimeString() : 'never'}]`)
+            for (const rec of src.records) {
+              lines.push(`  ${rec.stream}: ${JSON.stringify(rec.data)}`)
+            }
+          }
+          history.push({ role: 'system', content: lines.join('\n') })
+        } else {
+          const ctx = missionContext[channel.missionId]
+          if (ctx) {
+            history.push({
+              role: 'system',
+              content: [
+                `Mission: ${channel.missionId}`,
+                `Objective: ${ctx.objective}`,
+                `Status: ${ctx.status}`,
+                `Progress: ${ctx.progress}%`,
+                ctx.threats.length > 0 ? `Active Threats: ${ctx.threats.join('; ')}` : '',
+                `Assigned Agents: ${ctx.agents.join(', ')}`,
+              ].filter(Boolean).join('\n'),
+            })
+          }
         }
       }
 
@@ -197,7 +295,7 @@ export default function CommsPage() {
       // Persist session metadata
       saveSessionMeta(activeChannel, {
         guildMissionId: channel.missionId,
-        openclawAgentId: resolveAgentId(channel),
+        agentId: resolveAgentId(channel),
         sessionKey: currentSessionKey,
         createdAt: new Date().toISOString(),
       })
@@ -482,6 +580,84 @@ export default function CommsPage() {
                     </div>
                   )
                 })}
+                {/* Voice Call Cards */}
+                {channelCalls.map(call => {
+                  const color = callStatusColor[call.status] || '#94A3B8'
+                  const icon = callStatusIcon[call.status] || 'call'
+                  const isActive = call.status === 'ringing' || call.status === 'in-progress'
+                  const isExpanded = expandedCallId === call.id
+
+                  return (
+                    <div key={call.id} className="flex justify-center">
+                      <div
+                        className={cn(
+                          'w-full max-w-md rounded-xl border px-4 py-3 space-y-2 transition-all cursor-pointer',
+                          isActive ? 'border-status-online/20 bg-status-online/5' : 'border-white/5 bg-surface-container-high/40',
+                        )}
+                        onClick={() => setExpandedCallId(isExpanded ? null : call.id)}
+                      >
+                        {/* Call header */}
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                            style={{ backgroundColor: `${color}15`, border: `1px solid ${color}30` }}
+                          >
+                            <Icon name={icon} size="sm" style={{ color }} className={isActive ? 'animate-pulse' : ''} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-label font-bold uppercase tracking-wider" style={{ color }}>
+                                {call.status === 'ringing' ? 'Ringing' : call.status === 'in-progress' ? 'In Progress' : call.status === 'completed' ? 'Call Completed' : call.status === 'failed' ? 'Call Failed' : call.status === 'no-answer' ? 'No Answer' : 'Queued'}
+                              </span>
+                              {isActive && (
+                                <span className="flex gap-0.5">
+                                  <span className="w-1 h-1 rounded-full animate-bounce" style={{ backgroundColor: color, animationDelay: '0ms' }} />
+                                  <span className="w-1 h-1 rounded-full animate-bounce" style={{ backgroundColor: color, animationDelay: '150ms' }} />
+                                  <span className="w-1 h-1 rounded-full animate-bounce" style={{ backgroundColor: color, animationDelay: '300ms' }} />
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-[10px] text-on-surface-variant/50">
+                              <span>{call.phoneNumber}</span>
+                              <span>·</span>
+                              <span>{call.launchedAt}</span>
+                              {call.duration != null && (
+                                <>
+                                  <span>·</span>
+                                  <span>{Math.floor(call.duration / 60)}m {call.duration % 60}s</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <Icon name={isExpanded ? 'expand_less' : 'expand_more'} size="sm" className="text-on-surface-variant/30" />
+                        </div>
+
+                        {/* Expanded: summary + transcript */}
+                        {isExpanded && call.summary && (
+                          <div className="space-y-2 pt-2 border-t border-white/5">
+                            <div>
+                              <p className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant/50 mb-1">Summary</p>
+                              <p className="text-xs text-on-surface/80 leading-relaxed">{call.summary}</p>
+                            </div>
+                            {call.transcript && (
+                              <div>
+                                <p className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant/50 mb-1">Transcript</p>
+                                <pre className="text-[11px] text-on-surface/60 leading-relaxed whitespace-pre-wrap font-mono bg-white/[0.02] rounded p-2 max-h-40 overflow-y-auto custom-scrollbar">{call.transcript}</pre>
+                              </div>
+                            )}
+                            {call.error && (
+                              <div className="text-xs text-status-offline flex items-center gap-1.5">
+                                <Icon name="error" size="sm" />
+                                {call.error}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+
                 {/* Streaming typing indicator */}
                 {isStreaming && messages[messages.length - 1]?.content === '' && (
                   <div className="flex items-center gap-2 px-2 py-1">
@@ -525,7 +701,7 @@ export default function CommsPage() {
                   </span>
                 )}
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <input
                   ref={inputRef}
                   type="text"
@@ -536,6 +712,19 @@ export default function CommsPage() {
                   disabled={isStreaming}
                   className="flex-1 bg-surface-container-lowest border border-white/5 rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary-container/30 transition-colors disabled:opacity-50"
                 />
+                {/* Voice Call Button */}
+                <button
+                  onClick={() => setShowCallModal(!showCallModal)}
+                  title="Launch voice escalation call"
+                  className={cn(
+                    'px-3 py-2.5 rounded-lg transition-all flex items-center gap-1.5',
+                    showCallModal
+                      ? 'bg-status-online/20 text-status-online'
+                      : 'bg-surface-container-high/60 text-on-surface-variant hover:text-status-online hover:bg-status-online/10',
+                  )}
+                >
+                  <Icon name="call" size="sm" />
+                </button>
                 <button
                   onClick={sendMessage}
                   disabled={!input.trim() || isStreaming}
@@ -544,6 +733,42 @@ export default function CommsPage() {
                   <Icon name={isStreaming ? 'more_horiz' : 'send'} size="sm" />
                 </button>
               </div>
+
+              {/* Call Launch Modal */}
+              {showCallModal && (
+                <div className="mt-2 p-4 rounded-lg bg-surface-container-high/80 border border-white/10 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Icon name="call" size="sm" className="text-status-online" />
+                    <span className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">Voice Escalation</span>
+                    <button onClick={() => setShowCallModal(false)} className="ml-auto text-on-surface-variant/40 hover:text-white">
+                      <Icon name="close" size="sm" />
+                    </button>
+                  </div>
+                  {channel.missionId && context && (
+                    <div className="text-[10px] text-on-surface-variant/50 bg-white/[0.02] rounded px-3 py-2 border border-white/5">
+                      <span className="text-primary-container font-bold">{channel.missionId}</span> context will be injected into the call pathway
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      type="tel"
+                      value={callPhone}
+                      onChange={e => setCallPhone(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleLaunchCall() }}
+                      placeholder="+1 (555) 000-0000"
+                      className="flex-1 bg-surface-container-lowest border border-white/5 rounded-lg px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-status-online/30 transition-colors"
+                    />
+                    <button
+                      onClick={handleLaunchCall}
+                      disabled={!callPhone.trim() || callLaunching}
+                      className="px-4 py-2 bg-status-online/20 text-status-online rounded-lg hover:bg-status-online/30 transition-all disabled:opacity-30 flex items-center gap-1.5 text-xs font-headline font-bold"
+                    >
+                      <Icon name={callLaunching ? 'hourglass_top' : 'call'} size="sm" className={callLaunching ? 'animate-spin' : ''} />
+                      {callLaunching ? 'Dialing...' : 'Call'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </GlassPanel>
@@ -603,62 +828,238 @@ export default function CommsPage() {
               <p className="text-[10px] text-on-surface-variant/40 font-mono break-all">{activeExecution.sessionKey}</p>
             </div>
           </GlassPanel>
-        ) : context && showContext ? (
+        ) : (context || hasAirbyteContext) && showContext ? (
           <GlassPanel className="p-5 flex flex-col gap-5 overflow-y-auto custom-scrollbar hidden lg:flex">
-            <div>
-              <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-1">Mission Context</p>
-              <h3 className="font-headline font-bold text-white text-sm">{channel.missionId}</h3>
-            </div>
-
-            <div>
-              <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Objective</p>
-              <p className="text-xs text-on-surface/70 leading-relaxed">{context.objective}</p>
-            </div>
-
-            <div>
-              <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Status</p>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-status-online animate-pulse" />
-                <span className="text-xs font-headline font-bold text-white">{context.status}</span>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60">Progress</p>
-                <span className="text-xs font-bold text-white">{context.progress}%</span>
-              </div>
-              <ProgressBar value={context.progress} height="md" color="#863bff" />
-            </div>
-
-            <div>
-              <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Assigned Agents</p>
-              <div className="space-y-2">
-                {context.agents.map(name => {
-                  const agent = agents.find(a => a.name === name)
-                  const color = agentAvatarColor[name] || '#ccc3d8'
-                  return (
-                    <div key={name} className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-headline font-bold" style={{ backgroundColor: `${color}15`, color }}>
-                        {agent?.avatar || name.slice(0, 2)}
-                      </div>
-                      <span className="text-xs text-white font-headline">{name}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            {context.threats.length > 0 && (
+            {/* Header */}
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-label uppercase tracking-widest text-status-offline/80 mb-2">Active Threats</p>
-                <div className="space-y-1.5">
-                  {context.threats.map((threat, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs text-status-offline/80">
-                      <Icon name="warning" size="sm" className="text-status-offline/50 mt-0.5 shrink-0" />
-                      <span>{threat}</span>
+                <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-1">Mission Context</p>
+                <h3 className="font-headline font-bold text-white text-sm">{channel.missionId}</h3>
+              </div>
+              {hasAirbyteContext && (
+                <button
+                  onClick={async () => {
+                    if (!channel.missionId || isSyncing) return
+                    setIsSyncing(true)
+                    try { await triggerMissionSync(channel.missionId) }
+                    finally { setIsSyncing(false) }
+                  }}
+                  disabled={isSyncing}
+                  className={cn(
+                    'flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-label uppercase tracking-widest transition-colors',
+                    isSyncing
+                      ? 'text-on-surface-variant/30 cursor-not-allowed'
+                      : 'text-[#4cd7f6]/70 hover:text-[#4cd7f6] hover:bg-[#4cd7f6]/5',
+                  )}
+                >
+                  <Icon name={isSyncing ? 'hourglass_top' : 'sync'} size="sm" className={isSyncing ? 'animate-spin' : ''} />
+                  {isSyncing ? 'Syncing' : 'Sync'}
+                </button>
+              )}
+            </div>
+
+            {/* Airbyte Synced Sources */}
+            {hasAirbyteContext && airbyteContexts.map(src => {
+              const freshnessMin = Math.round(src.freshnessMs / 60_000)
+              const isFresh = freshnessMin < 10
+              const freshnessColor = isFresh ? 'text-status-online' : freshnessMin < 30 ? 'text-status-busy' : 'text-status-offline'
+              const statusColor = src.syncStatus === 'succeeded' ? '#10B981' : src.syncStatus === 'running' ? '#F59E0B' : src.syncStatus === 'failed' ? '#F43F5E' : '#94A3B8'
+
+              return (
+                <div key={src.connectionId} className="space-y-3">
+                  {/* Source header with freshness */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Icon name="cloud_sync" size="sm" style={{ color: statusColor }} />
+                      <span className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/80">{src.sourceName}</span>
                     </div>
-                  ))}
+                    <div className={cn('flex items-center gap-1 text-[10px]', freshnessColor)}>
+                      <Icon name="schedule" size="sm" />
+                      <span>{freshnessMin < 1 ? 'Just now' : `${freshnessMin}m ago`}</span>
+                    </div>
+                  </div>
+
+                  {/* Synced records */}
+                  <div className="space-y-2">
+                    {src.records.map((rec, i) => {
+                      const severity = rec.data.severity as string | undefined
+                      const severityColor = severity === 'critical' ? '#F43F5E' : severity === 'high' ? '#F59E0B' : severity === 'medium' ? '#4cd7f6' : '#94A3B8'
+                      const isAsset = rec.stream === 'infrastructure_assets'
+                      const isGitHub = rec.stream.startsWith('github_')
+                      const ghIcon = rec.stream === 'github_issues' ? 'bug_report' : rec.stream === 'github_pull_requests' ? 'merge' : 'commit'
+
+                      return (
+                        <div key={i} className="rounded-lg border border-white/5 bg-white/[0.02] p-2.5 space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <Icon
+                              name={isGitHub ? ghIcon : isAsset ? 'dns' : rec.stream === 'threat_indicators' ? 'gpp_bad' : 'monitoring'}
+                              size="sm"
+                              style={{ color: isGitHub ? '#8b5cf6' : isAsset ? '#d2bbff' : severityColor }}
+                            />
+                            <span className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/50">{rec.stream.replace(/_/g, ' ')}</span>
+                            {severity && (
+                              <span className="ml-auto text-[9px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ color: severityColor, backgroundColor: `${severityColor}15` }}>
+                                {severity}
+                              </span>
+                            )}
+                            {!!rec.data.state && isGitHub && (
+                              <span className={cn('ml-auto text-[9px] font-bold uppercase px-1.5 py-0.5 rounded', rec.data.state === 'open' ? 'text-status-online bg-status-online/10' : 'text-[#8b5cf6] bg-[#8b5cf6]/10')}>
+                                {String(rec.data.state)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-on-surface/70 leading-relaxed">
+                            {/* GitHub issues */}
+                            {!!rec.data.title && isGitHub && (
+                              <p>
+                                <span className="text-white/80 font-medium">#{String(rec.data.number)}</span>
+                                {' '}
+                                {String(rec.data.title)}
+                              </p>
+                            )}
+                            {!!rec.data.labels && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {(rec.data.labels as string[]).map(label => (
+                                  <span key={label} className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-on-surface-variant/60">{label}</span>
+                                ))}
+                              </div>
+                            )}
+                            {/* GitHub PRs */}
+                            {rec.data.additions != null && (
+                              <p className="text-on-surface-variant/40 text-[10px] mt-1">
+                                <span className="text-status-online">+{String(rec.data.additions)}</span>
+                                {' / '}
+                                <span className="text-status-offline">-{String(rec.data.deletions)}</span>
+                                {!!rec.data.author && ` · by ${String(rec.data.author)}`}
+                              </p>
+                            )}
+                            {/* GitHub commits */}
+                            {!!rec.data.sha && (
+                              <p>
+                                <span className="text-[#8b5cf6] font-mono text-[10px]">{String(rec.data.sha)}</span>
+                                {' '}
+                                {String(rec.data.message)}
+                                {!!rec.data.branch && <span className="text-on-surface-variant/40 text-[10px]"> on {String(rec.data.branch)}</span>}
+                              </p>
+                            )}
+                            {!!rec.data.assignee && (
+                              <p className="text-on-surface-variant/40 text-[10px]">
+                                assignee: {String(rec.data.assignee)}
+                                {rec.data.comments != null && ` · ${Number(rec.data.comments)} comments`}
+                              </p>
+                            )}
+                            {/* Threat intel / CMDB (existing) */}
+                            {!!rec.data.indicator && <p>{String(rec.data.indicator)}</p>}
+                            {!!rec.data.assetId && (
+                              <p>
+                                <span className="text-on-surface-variant/50">{String(rec.data.assetId)}</span>
+                                {' — '}
+                                <span className="text-white/80">{String(rec.data.zone)}</span>
+                                {!!rec.data.status && !isGitHub && (
+                                  <span className="ml-1 text-[9px] font-bold uppercase" style={{ color: (rec.data.status === 'active' ? '#10B981' : rec.data.status === 'lockdown' ? '#F43F5E' : '#F59E0B') }}>
+                                    [{String(rec.data.status)}]
+                                  </span>
+                                )}
+                              </p>
+                            )}
+                            {!!rec.data.anomalyType && (
+                              <p>
+                                {String(rec.data.anomalyType).replace(/_/g, ' ')}
+                                {!!rec.data.magnitude && ` — ${String(rec.data.magnitude)}`}
+                              </p>
+                            )}
+                            {rec.data.confidence != null && (
+                              <p className="text-on-surface-variant/40 text-[10px]">
+                                confidence: {Math.round(Number(rec.data.confidence) * 100)}%
+                                {!!rec.data.source && ` · ${String(rec.data.source)}`}
+                              </p>
+                            )}
+                            {rec.data.riskScore != null && (
+                              <p className="text-on-surface-variant/40 text-[10px]">
+                                risk score: {Number(rec.data.riskScore)}/100
+                                {!!rec.data.lastPatched && ` · patched: ${String(rec.data.lastPatched)}`}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+
+            {/* Divider between Airbyte context and legacy context */}
+            {hasAirbyteContext && context && (
+              <div className="border-t border-white/5" />
+            )}
+
+            {/* Legacy static context (objective, agents, etc.) */}
+            {context && (
+              <>
+                <div>
+                  <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Objective</p>
+                  <p className="text-xs text-on-surface/70 leading-relaxed">{context.objective}</p>
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Status</p>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-status-online animate-pulse" />
+                    <span className="text-xs font-headline font-bold text-white">{context.status}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60">Progress</p>
+                    <span className="text-xs font-bold text-white">{context.progress}%</span>
+                  </div>
+                  <ProgressBar value={context.progress} height="md" color="#863bff" />
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Assigned Agents</p>
+                  <div className="space-y-2">
+                    {context.agents.map(name => {
+                      const agent = agents.find(a => a.name === name)
+                      const color = agentAvatarColor[name] || '#ccc3d8'
+                      return (
+                        <div key={name} className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-headline font-bold" style={{ backgroundColor: `${color}15`, color }}>
+                            {agent?.avatar || name.slice(0, 2)}
+                          </div>
+                          <span className="text-xs text-white font-headline">{name}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Voice Calls */}
+            {channelCalls.length > 0 && (
+              <div>
+                <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Voice Calls</p>
+                <div className="space-y-1.5">
+                  {channelCalls.map(call => {
+                    const color = callStatusColor[call.status] || '#94A3B8'
+                    const icon = callStatusIcon[call.status] || 'call'
+                    const isActive = call.status === 'ringing' || call.status === 'in-progress'
+                    return (
+                      <div key={call.id} className={cn(
+                        'flex items-center gap-2 text-[10px] px-2 py-1.5 rounded border',
+                        isActive ? 'border-status-online/15' : call.status === 'completed' ? 'border-status-online/10' : 'border-white/5',
+                      )}>
+                        <Icon name={icon} size="sm" style={{ color }} className={isActive ? 'animate-pulse' : ''} />
+                        <div className="flex-1 min-w-0">
+                          <span className="font-bold block truncate" style={{ color }}>{call.phoneNumber}</span>
+                          <span className="text-[9px] text-on-surface-variant/40">{call.launchedAt}{call.duration != null ? ` · ${Math.floor(call.duration / 60)}m ${call.duration % 60}s` : ''}</span>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -676,7 +1077,7 @@ export default function CommsPage() {
               </button>
             </div>
           </GlassPanel>
-        ) : !context && (
+        ) : !context && !hasAirbyteContext && (
           <GlassPanel className="p-5 flex flex-col items-center justify-center gap-3 hidden lg:flex">
             <Icon name="forum" size="lg" className="text-on-surface-variant/20" />
             <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/40 text-center">

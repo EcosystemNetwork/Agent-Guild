@@ -1,4 +1,4 @@
-// ── OpenClaw Session Management ──
+// ── Agent Session Management ──
 // Session key derivation, metadata persistence, and reset logic
 
 // ── Session Key Strategy ──
@@ -21,12 +21,12 @@ export function resetSessionKey(channelId: string): string {
 
 export interface SessionMeta {
   guildMissionId?: string
-  openclawAgentId?: string
+  agentId?: string
   sessionKey: string
   createdAt: string
 }
 
-const STORAGE_KEY = 'openclaw_sessions'
+const STORAGE_KEY = 'guild_sessions'
 
 export function loadSessionMeta(): Record<string, SessionMeta> {
   try {

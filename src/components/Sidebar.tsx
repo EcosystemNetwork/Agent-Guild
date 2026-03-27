@@ -11,6 +11,7 @@ const navItems = [
   { to: '/operator', icon: 'insights', label: 'Operator' },
   { to: '/comms', icon: 'forum', label: 'Comms' },
   { to: '/registry', icon: 'hub', label: 'Registry' },
+  { to: '/profile', icon: 'person', label: 'Profile' },
 ]
 
 interface SidebarProps {

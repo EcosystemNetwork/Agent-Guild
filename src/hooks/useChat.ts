@@ -12,6 +12,7 @@ import {
 import type { SessionMeta } from '../api/openclaw'
 import type { ChatMessage, ChatChannel } from '../data/chat'
 import { missionContext } from '../data/chat'
+import { useAirbyte } from '../contexts/AirbyteContext'
 
 interface UseChatOptions {
   channel: ChatChannel
@@ -37,25 +38,42 @@ export function useChat({ channel, initialMessages }: UseChatOptions): UseChatRe
   })
   const abortRef = useRef<AbortController | null>(null)
   const streamContentRef = useRef('')
+  const { getMissionContext } = useAirbyte()
 
   const buildHistory = useCallback((msgs: ChatMessage[]): ChatCompletionMessage[] => {
     const history: ChatCompletionMessage[] = []
 
-    // Prepend mission context as system message
+    // Prepend mission context as system message — prefer live Airbyte-synced
+    // context, fall back to static fixture for unmapped missions
     if (channel.missionId) {
-      const ctx = missionContext[channel.missionId]
-      if (ctx) {
-        history.push({
-          role: 'system',
-          content: [
-            `Mission: ${channel.missionId}`,
-            `Objective: ${ctx.objective}`,
-            `Status: ${ctx.status}`,
-            `Progress: ${ctx.progress}%`,
-            ctx.threats.length > 0 ? `Active Threats: ${ctx.threats.join('; ')}` : '',
-            `Assigned Agents: ${ctx.agents.join(', ')}`,
-          ].filter(Boolean).join('\n'),
-        })
+      const airbyteContexts = getMissionContext(channel.missionId)
+
+      if (airbyteContexts.length > 0) {
+        // Build rich context from synced sources
+        const lines: string[] = [`Mission: ${channel.missionId}`]
+        for (const src of airbyteContexts) {
+          lines.push(`\n[Source: ${src.sourceName} — synced ${src.lastSyncAt ? new Date(src.lastSyncAt).toLocaleTimeString() : 'never'}]`)
+          for (const rec of src.records) {
+            lines.push(`  ${rec.stream}: ${JSON.stringify(rec.data)}`)
+          }
+        }
+        history.push({ role: 'system', content: lines.join('\n') })
+      } else {
+        // Fallback to static fixture
+        const ctx = missionContext[channel.missionId]
+        if (ctx) {
+          history.push({
+            role: 'system',
+            content: [
+              `Mission: ${channel.missionId}`,
+              `Objective: ${ctx.objective}`,
+              `Status: ${ctx.status}`,
+              `Progress: ${ctx.progress}%`,
+              ctx.threats.length > 0 ? `Active Threats: ${ctx.threats.join('; ')}` : '',
+              `Assigned Agents: ${ctx.agents.join(', ')}`,
+            ].filter(Boolean).join('\n'),
+          })
+        }
       }
     }
 
@@ -69,7 +87,7 @@ export function useChat({ channel, initialMessages }: UseChatOptions): UseChatRe
     }
 
     return history
-  }, [channel.missionId])
+  }, [channel.missionId, getMissionContext])
 
   // Determine the responding agent for this channel
   const getRespondingAgent = useCallback(() => {
@@ -157,7 +175,7 @@ export function useChat({ channel, initialMessages }: UseChatOptions): UseChatRe
     // Persist session metadata
     const meta: SessionMeta = {
       guildMissionId: channel.missionId,
-      openclawAgentId: resolveAgentId(channel),
+      agentId: resolveAgentId(channel),
       sessionKey,
       createdAt: new Date().toISOString(),
     }

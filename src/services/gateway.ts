@@ -15,30 +15,60 @@ export interface StreamChunk {
   choices: { delta: { content?: string; role?: string }; finish_reason: string | null }[]
 }
 
-const DEFAULT_CONFIG: GatewayConfig = {
-  baseUrl: '/api/gateway',
-  token: '',
-}
-
-let config: GatewayConfig = { ...DEFAULT_CONFIG }
-
-export function configureGateway(cfg: Partial<GatewayConfig>) {
-  config = { ...config, ...cfg }
-}
-
+/**
+ * Stream a chat completion from the TrueFoundry AI Gateway via the local proxy.
+ * Yields text chunks as they arrive over SSE.
+ */
 export async function* streamChatCompletion(
-  _agentId: string,
-  _sessionKey: string,
+  agentId: string,
+  sessionKey: string,
   messages: ChatCompletionMessage[],
 ): AsyncGenerator<string, void, unknown> {
-  // In production, this calls OpenClaw POST /v1/chat/completions with stream: true
-  // For now, simulate SSE streaming with mock responses
-  const response = buildMockResponse(messages)
-  const words = response.split(' ')
+  const resp = await fetch('/api/chat/stream', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-agent-id': agentId,
+      'x-session-key': sessionKey,
+    },
+    body: JSON.stringify({ messages }),
+  })
 
-  for (const word of words) {
-    await sleep(40 + Math.random() * 60)
-    yield word + ' '
+  if (!resp.ok) {
+    const text = await resp.text()
+    throw new Error(`Gateway stream failed (${resp.status}): ${text}`)
+  }
+
+  if (!resp.body) {
+    throw new Error('No response body from gateway')
+  }
+
+  const reader = resp.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split('\n')
+    buffer = lines.pop() ?? ''
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue
+      const payload = line.slice(6).trim()
+      if (payload === '[DONE]') return
+      try {
+        const parsed = JSON.parse(payload)
+        if (parsed.error) throw new Error(parsed.error)
+        const delta = parsed.choices?.[0]?.delta?.content
+        if (delta) yield delta
+      } catch (e) {
+        if (e instanceof Error && e.message.startsWith('Gateway')) throw e
+        // skip malformed SSE lines
+      }
+    }
   }
 }
 
@@ -47,8 +77,9 @@ export async function invokeToolAction(
   toolName: string,
   input: Record<string, unknown>,
 ): Promise<ToolAction> {
-  // In production: POST /tools/invoke with gateway auth + tool policy enforcement
-  await sleep(800 + Math.random() * 1200)
+  // Tool invocation remains a local mock for now — will be wired to
+  // TrueFoundry function-calling once tool schemas are registered.
+  await new Promise(r => setTimeout(r, 800 + Math.random() * 1200))
 
   const success = Math.random() > 0.15
   const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
@@ -65,21 +96,6 @@ export async function invokeToolAction(
   }
 }
 
-function buildMockResponse(messages: ChatCompletionMessage[]): string {
-  const lastMsg = messages[messages.length - 1]?.content?.toLowerCase() ?? ''
-
-  if (lastMsg.includes('research') || lastMsg.includes('investigate')) {
-    return 'Analysis initiated. Scanning target vectors across three primary zones. Preliminary findings indicate anomalous activity on ports 8443-8447. Cross-referencing with historical threat data reveals a 73% pattern match with known polymorphic tunneling protocols. Recommend deeper analysis of source relay infrastructure before proceeding to active countermeasures. Confidence level: HIGH.'
-  }
-  if (lastMsg.includes('summarize') || lastMsg.includes('summary')) {
-    return 'Executive summary: The current threat landscape shows elevated risk across sectors 4-B and 7-G. Key findings include: (1) Polymorphic tunnel detected on perimeter nodes, (2) Three compromised service accounts identified and rotated, (3) Traffic anomalies correlating with Syndicate Omega communication patterns. Recommended action: maintain heightened posture for the next 6-hour window and increase recon sweep cadence.'
-  }
-  if (lastMsg.includes('plan') || lastMsg.includes('strategy')) {
-    return 'Operational plan generated. Phase 1: Deploy passive probes to compromised nodes (ETA: 15min). Phase 2: Capture and analyze traffic samples while maintaining zero-footprint protocol (ETA: 45min). Phase 3: Cross-reference findings with intel database and generate threat classification report (ETA: 20min). Phase 4: Brief command with actionable recommendations. Total estimated runtime: 1h 20min. Risk assessment: MODERATE.'
-  }
-  return 'Mission objective acknowledged. Deploying analysis protocols across target infrastructure. Initial telemetry indicates nominal system status with elevated threat indicators in the eastern perimeter zone. Monitoring continues. Will report findings at 15-minute intervals or immediately upon detection of critical anomalies.'
-}
-
 function buildMockToolOutput(toolName: string, input: Record<string, unknown>): string {
   const outputs: Record<string, string> = {
     'network-scan': `Scan complete. 47 active hosts detected. 3 flagged for anomalous behavior: ${JSON.stringify(input.targets ?? ['10.0.4.12', '10.0.4.15', '10.0.7.22'])}`,
@@ -89,8 +105,4 @@ function buildMockToolOutput(toolName: string, input: Record<string, unknown>): 
     'log-export': 'Exported 2,847 log entries to secure archive. Hash verification: PASSED.',
   }
   return outputs[toolName] ?? `Tool "${toolName}" executed successfully. Output: ${JSON.stringify(input)}`
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
 }

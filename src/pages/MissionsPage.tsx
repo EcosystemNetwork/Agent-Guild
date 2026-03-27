@@ -536,6 +536,10 @@ export default function MissionsPage() {
                       <Icon name="priority_high" size="sm" /> Escalate
                     </button>
                   )}
+                  <button onClick={() => operatorAction(selectedExecution.id, 'call')}
+                    className="px-3 py-2 rounded-lg bg-status-online/10 text-status-online text-[10px] font-bold uppercase tracking-wider hover:bg-status-online/20 transition-all border border-status-online/20 flex items-center gap-1">
+                    <Icon name="call" size="sm" /> Call
+                  </button>
                 </div>
               </div>
 

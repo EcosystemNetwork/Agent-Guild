@@ -1,6 +1,6 @@
-// ── OpenClaw Gateway API Client ──
+// ── TrueFoundry AI Gateway Client ──
 
-const API_BASE = '/api/agent'
+const API_BASE = '/api/chat'
 
 export interface ChatCompletionMessage {
   role: 'system' | 'user' | 'assistant'
@@ -25,12 +25,12 @@ export async function sendMessage(opts: SendMessageOptions): Promise<string> {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-openclaw-agent-id': opts.agentId,
-      'x-openclaw-session-key': opts.sessionKey,
+      'x-agent-id': opts.agentId,
+      'x-session-key': opts.sessionKey,
     },
     body: JSON.stringify({
-      model: opts.model ?? opts.agentId,
       messages: opts.messages,
+      ...(opts.model && { model: opts.model }),
     }),
   })
   if (!resp.ok) {
@@ -54,12 +54,12 @@ export async function streamMessage(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-openclaw-agent-id': opts.agentId,
-        'x-openclaw-session-key': opts.sessionKey,
+        'x-agent-id': opts.agentId,
+        'x-session-key': opts.sessionKey,
       },
       body: JSON.stringify({
-        model: opts.model ?? opts.agentId,
         messages: opts.messages,
+        ...(opts.model && { model: opts.model }),
       }),
       signal: controller.signal,
     })
@@ -121,4 +121,30 @@ export async function streamMessage(
   }
 
   return controller
+}
+
+// ── Voice Call API ──
+
+export interface LaunchCallOptions {
+  phone_number: string
+  pathway_id?: string
+  request_data?: Record<string, unknown>
+}
+
+export async function launchCall(opts: LaunchCallOptions): Promise<{ status: string; call_id?: string }> {
+  const resp = await fetch('/api/voice/call', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(opts),
+  })
+  const data = await resp.json()
+  if (!resp.ok) throw new Error(data.error || `Call launch failed (${resp.status})`)
+  return data
+}
+
+export async function pollCallEvents(): Promise<Record<string, unknown>[]> {
+  const resp = await fetch('/api/voice/events')
+  if (!resp.ok) return []
+  const data = await resp.json()
+  return data.events ?? []
 }

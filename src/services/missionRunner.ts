@@ -6,6 +6,7 @@ import type {
   OperatorAction,
 } from '../types'
 import { streamChatCompletion, invokeToolAction } from './gateway'
+import { launchVoiceCall } from './bland'
 import type { ChatCompletionMessage } from './gateway'
 
 type MissionListener = (mission: MissionExecution) => void
@@ -163,6 +164,31 @@ export function handleOperatorAction(missionId: string, action: OperatorAction) 
         content: 'Mission escalated to human review. Execution paused.',
       })
       notify(missionId)
+      break
+    }
+    case 'call': {
+      addTranscript(missionId, {
+        role: 'operator',
+        agentName: 'Commander Kai',
+        content: `Voice escalation initiated for mission ${missionId}. Launching outbound call...`,
+      })
+      launchVoiceCall({
+        phoneNumber: '+15550001234',
+        missionId,
+        channelId: `exec-${missionId}`,
+        requestData: {
+          mission_name: mission.name,
+          objective: mission.prompt,
+          status: mission.status,
+          context: mission.context,
+        },
+      }).then(call => {
+        addTranscript(missionId, {
+          role: 'system',
+          agentName: 'BLAND',
+          content: `Call ${call.id} queued → ${call.phoneNumber}. Status: ${call.status}`,
+        })
+      })
       break
     }
   }
