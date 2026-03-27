@@ -7,7 +7,7 @@ export const activityFeed: ActivityEvent[] = [
     type: 'mission',
     icon: 'task_alt',
     description: 'CIPHER-7 completed Mission #2847 — Trust +0.3',
-    color: '#7c3aed',
+    color: '#863bff',
   },
   {
     id: 'evt-2',
@@ -31,7 +31,7 @@ export const activityFeed: ActivityEvent[] = [
     type: 'mission',
     icon: 'rocket_launch',
     description: 'Mission #2848 initialized — Shadow Protocol',
-    color: '#7c3aed',
+    color: '#863bff',
   },
   {
     id: 'evt-5',
@@ -55,7 +55,7 @@ export const activityFeed: ActivityEvent[] = [
     type: 'mission',
     icon: 'flag',
     description: 'SENTINEL-12 flagged perimeter breach attempt',
-    color: '#7c3aed',
+    color: '#863bff',
   },
   {
     id: 'evt-8',

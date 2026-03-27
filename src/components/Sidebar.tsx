@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import Icon from './ui/Icon'
 import { cn } from '../lib/utils'
+import agentLogo from '/agentlogo.png'
 
 const navItems = [
   { to: '/', icon: 'dashboard', label: 'Dashboard' },
@@ -29,7 +30,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          'fixed left-0 top-0 h-full z-50 flex flex-col bg-surface-container-low/80 backdrop-blur-xl border-r border-white/10 transition-all duration-300 overflow-hidden',
+          'group/sidebar fixed left-0 top-0 h-full z-50 flex flex-col bg-surface-container-low/80 backdrop-blur-xl border-r border-white/10 transition-all duration-300 overflow-hidden',
           // Desktop: collapsible on hover
           'lg:w-[72px] lg:hover:w-[240px]',
           // Mobile: slide in/out
@@ -38,14 +39,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       >
         {/* Brand */}
         <div className="p-4 flex items-center gap-3 min-h-[72px]">
-          <div className="w-10 h-10 min-w-[40px] rounded-lg bg-primary-container/20 flex items-center justify-center">
-            <Icon
-              name="shield"
-              filled
-              className="text-primary-container drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]"
-              size="lg"
-            />
-          </div>
+          <img
+            src={agentLogo}
+            alt="Agent Guild"
+            className="w-10 h-10 min-w-[40px] rounded-lg object-cover drop-shadow-[0_0_10px_rgba(134,59,255,0.4)]"
+          />
           <div className="opacity-0 lg:group-hover/sidebar:opacity-100 transition-opacity duration-300 whitespace-nowrap sidebar-label">
             <h2 className="font-headline font-bold text-white tracking-tight leading-none text-sm">
               Agent Guild

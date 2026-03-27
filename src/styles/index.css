@@ -16,14 +16,14 @@
   --color-surface-bright: #39383e;
   --color-surface-variant: #35343a;
 
-  /* Primary: Electric Violet */
+  /* Primary: Royal Violet (matched to guild crest) */
   --color-primary: #d2bbff;
-  --color-primary-container: #7c3aed;
-  --color-primary-fixed: #eaddff;
+  --color-primary-container: #863bff;
+  --color-primary-fixed: #ede6ff;
   --color-primary-fixed-dim: #d2bbff;
-  --color-on-primary: #3f008e;
-  --color-on-primary-container: #ede0ff;
-  --color-inverse-primary: #732ee4;
+  --color-on-primary: #3a0090;
+  --color-on-primary-container: #ede6ff;
+  --color-inverse-primary: #7e14ff;
 
   /* Secondary: Neon Cyan */
   --color-secondary: #4cd7f6;
@@ -82,7 +82,7 @@ body {
 .glass-panel {
   background: rgba(27, 27, 32, 0.6);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(124, 58, 237, 0.15);
+  border: 1px solid rgba(134, 59, 255, 0.15);
 }
 
 .glass-panel-subtle {
@@ -93,7 +93,7 @@ body {
 
 /* ── Scanline Overlay ── */
 .scanline {
-  background: linear-gradient(to bottom, transparent 50%, rgba(124, 58, 237, 0.02) 50%);
+  background: linear-gradient(to bottom, transparent 50%, rgba(134, 59, 255, 0.02) 50%);
   background-size: 100% 4px;
   pointer-events: none;
 }
@@ -106,7 +106,7 @@ body {
 
 /* ── Agent Card Glow ── */
 .agent-card-glow:hover {
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
+  box-shadow: 0 0 20px rgba(134, 59, 255, 0.15);
 }
 
 /* ── Custom Scrollbar ── */
@@ -117,20 +117,20 @@ body {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(124, 58, 237, 0.3);
+  background: rgba(134, 59, 255, 0.3);
   border-radius: 9999px;
 }
 
 /* ── Header glow line ── */
 .header-glow {
-  background: linear-gradient(90deg, transparent 0%, #7c3aed 30%, #4cd7f6 70%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, #863bff 30%, #47bfff 70%, transparent 100%);
   height: 1px;
   opacity: 0.5;
 }
 
 /* ── Glow Utilities ── */
 .glow-violet {
-  box-shadow: 0 0 12px rgba(124, 58, 237, 0.2);
+  box-shadow: 0 0 12px rgba(134, 59, 255, 0.25);
 }
 .glow-cyan {
   box-shadow: 0 0 12px rgba(76, 215, 246, 0.2);

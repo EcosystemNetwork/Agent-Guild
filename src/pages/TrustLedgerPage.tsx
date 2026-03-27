@@ -47,7 +47,7 @@ export default function TrustLedgerPage() {
           icon="verified_user"
           iconColor="text-primary"
           trend={{ value: data.guild.trustTrend, label: 'this cycle' }}
-          accentBar={{ percent: avgTrust, color: '#7c3aed' }}
+          accentBar={{ percent: avgTrust, color: '#863bff' }}
         />
         <StatCard
           label="Success Rate"

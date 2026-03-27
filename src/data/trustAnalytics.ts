@@ -47,7 +47,7 @@ export const badges: Badge[] = [
   { id: 'b-3', name: 'Oracle\'s Eye', icon: 'psychology', description: 'Predictive accuracy above 95% for 20+ forecasts', color: '#d2bbff', earnedBy: ['oracle-1', 'nova-3'] },
   { id: 'b-4', name: 'Iron Wall', icon: 'security', description: 'Contained 5+ critical breaches under 120s', color: '#F59E0B', earnedBy: ['sentinel-12', 'pulse'] },
   { id: 'b-5', name: 'Signal Master', icon: 'cell_tower', description: 'Decoded 50+ encrypted transmissions', color: '#F43F5E', earnedBy: ['echo-9', 'cipher-7'] },
-  { id: 'b-6', name: 'First Light', icon: 'auto_awesome', description: 'Completed first mission with perfect score', color: '#7c3aed', earnedBy: ['cipher-7', 'pulse', 'nova-3', 'sentinel-12', 'echo-9', 'wraith-5', 'oracle-1', 'vex-4'] },
+  { id: 'b-6', name: 'First Light', icon: 'auto_awesome', description: 'Completed first mission with perfect score', color: '#863bff', earnedBy: ['cipher-7', 'pulse', 'nova-3', 'sentinel-12', 'echo-9', 'wraith-5', 'oracle-1', 'vex-4'] },
 ]
 
 export const comparisonMetrics = [

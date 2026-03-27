@@ -1,5 +1,6 @@
 import { guildMetrics } from '../data/activity'
 import Icon from './ui/Icon'
+import agentLogo from '/agentlogo.png'
 
 interface TopbarProps {
   onMenuToggle: () => void
@@ -15,9 +16,16 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
         >
           <Icon name="menu" />
         </button>
-        <h1 className="text-lg sm:text-xl font-black text-white tracking-widest font-headline uppercase">
-          AGENT GUILD
-        </h1>
+        <div className="flex items-center gap-3">
+          <img
+            src={agentLogo}
+            alt=""
+            className="w-8 h-8 rounded object-cover drop-shadow-[0_0_8px_rgba(134,59,255,0.3)] hidden sm:block"
+          />
+          <h1 className="text-lg sm:text-xl font-black text-white tracking-widest font-headline uppercase">
+            AGENT GUILD
+          </h1>
+        </div>
         <div className="hidden lg:flex items-center gap-3">
           <StatPill label={`${guildMetrics.activeMissions} Active Missions`} />
           <StatPill label={`${guildMetrics.agentsDeployed} Agents Deployed`} />

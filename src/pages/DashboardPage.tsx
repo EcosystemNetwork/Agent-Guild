@@ -58,7 +58,7 @@ export default function DashboardPage() {
           icon="verified_user"
           iconColor="text-primary"
           trend={{ value: metrics.trustTrend, label: 'this cycle' }}
-          accentBar={{ percent: metrics.trustScore, color: '#7c3aed' }}
+          accentBar={{ percent: metrics.trustScore, color: '#863bff' }}
         />
         <StatCard
           label="Verified Logs"
