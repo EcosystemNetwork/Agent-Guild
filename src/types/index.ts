@@ -89,6 +89,92 @@ export interface GuildMetrics {
   sparkline: number[]
 }
 
+// ── Agent Registry Types ──
+
+export type SessionMode = 'autonomous' | 'supervised' | 'manual'
+export type ToolPolicy = 'unrestricted' | 'sandboxed' | 'restricted' | 'read-only'
+export type ConnectionStatus = 'connected' | 'disconnected' | 'error'
+export type AgentRoutingRole = 'scout' | 'negotiator' | 'operator' | 'analyst' | 'general'
+
+export interface AgentRegistryEntry {
+  guildAgentId: string
+  openclawAgentId: string
+  displayName: string
+  role: AgentRoutingRole
+  defaultSessionMode: SessionMode
+  toolPolicy: ToolPolicy
+  connectionStatus: ConnectionStatus
+  currentSessionId: string | null
+  lastActivity: string
+}
+
+export interface RoutingRule {
+  role: AgentRoutingRole
+  label: string
+  description: string
+  preferredAgentTypes: string[]
+  icon: string
+  color: string
+}
+
+// ── Mission Execution Types ──
+
+export type ExecutionMissionType = 'research' | 'summarize' | 'plan' | 'execute-tool'
+export type ExecutionStatus = 'awaiting-approval' | 'approved' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled'
+
+export interface MissionExecution {
+  id: string
+  name: string
+  type: ExecutionMissionType
+  status: ExecutionStatus
+  assignedAgentId: string
+  openclawAgentId: string
+  sessionKey: string
+  prompt: string
+  context: string
+  priority: Priority
+  requiresApproval: boolean
+  createdAt: string
+  startedAt: string | null
+  completedAt: string | null
+  progress: number
+  transcript: MissionTranscriptEntry[]
+  toolActions: ToolAction[]
+  error: string | null
+}
+
+export interface MissionTranscriptEntry {
+  id: string
+  timestamp: string
+  role: 'system' | 'operator' | 'agent' | 'tool'
+  agentName: string
+  content: string
+  tokenCount?: number
+}
+
+export interface ToolAction {
+  id: string
+  toolName: string
+  input: Record<string, unknown>
+  output: string | null
+  status: 'pending' | 'running' | 'success' | 'failure'
+  startedAt: string
+  completedAt: string | null
+  error: string | null
+}
+
+export type OperatorAction = 'retry' | 'stop' | 'fork' | 'escalate'
+
+export interface MissionLaunchRequest {
+  name: string
+  type: ExecutionMissionType
+  agentId: string
+  prompt: string
+  context: string
+  priority: Priority
+  requiresApproval: boolean
+}
+
 // ── Async Data State ──
 
 export interface AsyncState<T> {

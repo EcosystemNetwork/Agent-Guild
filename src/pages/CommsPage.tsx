@@ -1,11 +1,23 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { agents } from '../data/agents'
 import { channels, chatMessages, missionContext } from '../data/chat'
 import type { ChatMessage } from '../data/chat'
-import { cn, agentStatusColor } from '../lib/utils'
+import { cn, agentStatusColor, executionStatusColor, missionTypeColor } from '../lib/utils'
+import { streamMessage, checkGatewayHealth } from '../lib/api'
+import type { ChatCompletionMessage } from '../lib/api'
+import {
+  deriveSessionKey,
+  resetSessionKey,
+  resolveAgentId,
+  saveSessionMeta,
+  clearSessionMeta,
+  loadSessionMeta,
+} from '../api/openclaw'
+import { useMissions } from '../contexts/MissionContext'
 import PageHeader from '../components/ui/PageHeader'
 import GlassPanel from '../components/ui/GlassPanel'
 import ProgressBar from '../components/ui/ProgressBar'
+import StatusChip from '../components/ui/StatusChip'
 import Icon from '../components/ui/Icon'
 
 const agentAvatarColor: Record<string, string> = {
@@ -18,44 +30,194 @@ const agentAvatarColor: Record<string, string> = {
   'ORACLE-1': '#10B981',
   'SYSTEM': '#F43F5E',
   'Commander Kai': '#863bff',
+  'AGENT': '#4cd7f6',
 }
 
 export default function CommsPage() {
+  const { executions } = useMissions()
   const [activeChannel, setActiveChannel] = useState('general')
   const [input, setInput] = useState('')
   const [localMessages, setLocalMessages] = useState<Record<string, ChatMessage[]>>(chatMessages)
   const [showPinned, setShowPinned] = useState(false)
   const [showContext, setShowContext] = useState(true)
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [gatewayStatus, setGatewayStatus] = useState<'unknown' | 'ok' | 'offline'>('unknown')
+  // Per-channel session keys: mission threads, agent DMs, and team channels each get isolated keys
+  const [sessionKeys, setSessionKeys] = useState<Record<string, string>>(() => {
+    const stored = loadSessionMeta()
+    const keys: Record<string, string> = {}
+    for (const ch of channels) {
+      keys[ch.id] = stored[ch.id]?.sessionKey || deriveSessionKey(ch)
+    }
+    return keys
+  })
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
-  const channel = channels.find(c => c.id === activeChannel)!
-  const messages = localMessages[activeChannel] || []
+  const isExecChannel = activeChannel.startsWith('exec-')
+  const execId = isExecChannel ? activeChannel.replace('exec-', '') : null
+  const activeExecution = execId ? executions.find(e => e.id === execId) : null
+  const channel = channels.find(c => c.id === activeChannel) ?? channels[0]
+  const messages = isExecChannel ? [] : (localMessages[activeChannel] || [])
   const pinnedMessages = messages.filter(m => m.pinned)
-  const context = channel.missionId ? missionContext[channel.missionId] : null
+  const context = !isExecChannel && channel.missionId ? missionContext[channel.missionId] : null
+  const currentSessionKey = !isExecChannel ? (sessionKeys[activeChannel] || deriveSessionKey(channel)) : ''
+
+  // Check gateway health on mount
+  useEffect(() => {
+    checkGatewayHealth()
+      .then(() => setGatewayStatus('ok'))
+      .catch(() => setGatewayStatus('offline'))
+  }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages.length, activeChannel])
 
-  const sendMessage = () => {
-    if (!input.trim()) return
-    const newMsg: ChatMessage = {
+  // Resolve target agent for the active channel (first assigned agent, or channel name)
+  const getTargetAgent = useCallback((): string | null => {
+    const ctx = channel.missionId ? missionContext[channel.missionId] : null
+    if (ctx && ctx.agents.length > 0) return ctx.agents[0]
+    return null
+  }, [channel])
+
+  const appendMessage = useCallback((channelId: string, msg: ChatMessage) => {
+    setLocalMessages(prev => ({
+      ...prev,
+      [channelId]: [...(prev[channelId] || []), msg],
+    }))
+  }, [])
+
+  const updateLastMessage = useCallback((channelId: string, updater: (content: string) => string) => {
+    setLocalMessages(prev => {
+      const msgs = prev[channelId] || []
+      if (msgs.length === 0) return prev
+      const last = msgs[msgs.length - 1]
+      return {
+        ...prev,
+        [channelId]: [...msgs.slice(0, -1), { ...last, content: updater(last.content) }],
+      }
+    })
+  }, [])
+
+  // Reset session for the active channel — generates a new session key, isolating future messages
+  const handleResetSession = useCallback(() => {
+    abortRef.current?.abort()
+    abortRef.current = null
+
+    const newKey = resetSessionKey(activeChannel)
+    setSessionKeys(prev => ({ ...prev, [activeChannel]: newKey }))
+    clearSessionMeta(activeChannel)
+
+    const resetMsg: ChatMessage = {
+      id: `msg-${Date.now()}-reset`,
+      from: 'SYSTEM',
+      fromAvatar: 'SY',
+      to: activeChannel,
+      content: 'Session memory reset — new conversation context started.',
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      channel: activeChannel,
+      type: 'system',
+    }
+    appendMessage(activeChannel, resetMsg)
+    setIsStreaming(false)
+  }, [activeChannel, appendMessage])
+
+  const sendMessage = async () => {
+    if (!input.trim() || isStreaming) return
+    const userContent = input.trim()
+    const ts = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+
+    // Add user message to chat
+    const userMsg: ChatMessage = {
       id: `msg-${Date.now()}`,
       from: 'Commander Kai',
       fromAvatar: 'CK',
       to: activeChannel,
-      content: input.trim(),
-      timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      content: userContent,
+      timestamp: ts,
       channel: activeChannel,
       type: 'message',
     }
-    setLocalMessages(prev => ({
-      ...prev,
-      [activeChannel]: [...(prev[activeChannel] || []), newMsg],
-    }))
+    appendMessage(activeChannel, userMsg)
     setInput('')
     inputRef.current?.focus()
+
+    // If gateway is online and channel has a target agent, stream through OpenClaw
+    const targetAgent = getTargetAgent()
+    if (gatewayStatus === 'ok' && targetAgent) {
+      setIsStreaming(true)
+
+      // Build conversation history — prepend pinned mission context as system message
+      const history: ChatCompletionMessage[] = []
+      if (channel.missionId) {
+        const ctx = missionContext[channel.missionId]
+        if (ctx) {
+          history.push({
+            role: 'system',
+            content: [
+              `Mission: ${channel.missionId}`,
+              `Objective: ${ctx.objective}`,
+              `Status: ${ctx.status}`,
+              `Progress: ${ctx.progress}%`,
+              ctx.threats.length > 0 ? `Active Threats: ${ctx.threats.join('; ')}` : '',
+              `Assigned Agents: ${ctx.agents.join(', ')}`,
+            ].filter(Boolean).join('\n'),
+          })
+        }
+      }
+
+      // Append recent conversation messages
+      const recentMsgs = messages
+        .filter(m => m.type === 'message')
+        .slice(-20)
+        .map(m => ({
+          role: (m.from === 'Commander Kai' ? 'user' : 'assistant') as 'user' | 'assistant',
+          content: m.content,
+        }))
+      history.push(...recentMsgs)
+      history.push({ role: 'user', content: userContent })
+
+      const agentAvatar = agents.find(a => a.name === targetAgent)?.avatar || targetAgent.slice(0, 2)
+
+      // Add placeholder for streaming response
+      const placeholderMsg: ChatMessage = {
+        id: `msg-stream-${Date.now()}`,
+        from: targetAgent,
+        fromAvatar: agentAvatar,
+        to: activeChannel,
+        content: '',
+        timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        channel: activeChannel,
+        type: 'message',
+      }
+      appendMessage(activeChannel, placeholderMsg)
+
+      // Persist session metadata
+      saveSessionMeta(activeChannel, {
+        guildMissionId: channel.missionId,
+        openclawAgentId: resolveAgentId(channel),
+        sessionKey: currentSessionKey,
+        createdAt: new Date().toISOString(),
+      })
+
+      const currentChannel = activeChannel
+      abortRef.current = await streamMessage(
+        {
+          agentId: resolveAgentId(channel),
+          sessionKey: currentSessionKey,
+          messages: history,
+        },
+        (chunk) => updateLastMessage(currentChannel, prev => prev + chunk),
+        () => setIsStreaming(false),
+        (err) => {
+          console.error('[gateway]', err)
+          updateLastMessage(currentChannel, prev => prev || `[Connection error: ${err.message}]`)
+          setIsStreaming(false)
+        },
+      )
+    }
   }
 
   return (
@@ -87,6 +249,33 @@ export default function CommsPage() {
                 )}
               </button>
             ))}
+
+            {/* Live Mission Feeds */}
+            {executions.length > 0 && (
+              <>
+                <div className="pt-3 pb-1 px-2">
+                  <p className="font-label text-[8px] uppercase tracking-widest text-secondary/60">Live Missions</p>
+                </div>
+                {executions.map(exec => (
+                  <button
+                    key={`exec-${exec.id}`}
+                    onClick={() => setActiveChannel(`exec-${exec.id}`)}
+                    className={cn(
+                      'w-full text-left px-3 py-2.5 rounded-lg text-xs font-headline flex items-center gap-2 transition-all duration-200',
+                      activeChannel === `exec-${exec.id}`
+                        ? 'bg-primary-container/20 text-primary-container font-bold'
+                        : 'text-on-surface-variant/60 hover:bg-white/5 hover:text-on-surface-variant',
+                    )}
+                  >
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: executionStatusColor[exec.status] }} />
+                    <span className="truncate flex-1">{exec.name}</span>
+                    {exec.status === 'running' && (
+                      <span className="text-[8px] text-status-online font-bold">{exec.progress}%</span>
+                    )}
+                  </button>
+                ))}
+              </>
+            )}
           </div>
 
           {/* Online Agents */}
@@ -113,15 +302,39 @@ export default function CommsPage() {
           {/* Chat Header */}
           <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Icon name={channel.icon} size="sm" className="text-primary-container" />
+              <Icon name={isExecChannel ? 'rocket_launch' : channel.icon} size="sm" className="text-primary-container" />
               <div>
-                <h3 className="font-headline font-bold text-white text-sm">{channel.name}</h3>
+                <h3 className="font-headline font-bold text-white text-sm">
+                  {isExecChannel && activeExecution ? activeExecution.name : channel.name}
+                </h3>
                 <p className="text-[9px] text-on-surface-variant/50 uppercase tracking-wider">
-                  {messages.length} messages {channel.missionId && `· ${channel.missionId}`}
+                  {isExecChannel && activeExecution ? (
+                    <>
+                      {activeExecution.transcript.length} entries · {activeExecution.id} · {activeExecution.assignedAgentId}
+                    </>
+                  ) : (
+                    <>
+                      {messages.length} messages {channel.missionId && `· ${channel.missionId}`}
+                      {' · '}
+                      <span className="text-on-surface-variant/30" title={currentSessionKey}>session {currentSessionKey.slice(-8)}</span>
+                    </>
+                  )}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-1">
+              {isExecChannel && activeExecution && (
+                <StatusChip label={activeExecution.status} color={executionStatusColor[activeExecution.status]} pulse={activeExecution.status === 'running'} />
+              )}
+              {!isExecChannel && (
+                <button
+                  onClick={handleResetSession}
+                  title="Reset session memory"
+                  className="p-2 rounded-lg text-on-surface-variant hover:text-status-offline hover:bg-status-offline/10 transition-all"
+                >
+                  <Icon name="restart_alt" size="sm" />
+                </button>
+              )}
               {pinnedMessages.length > 0 && (
                 <button
                   onClick={() => setShowPinned(!showPinned)}
@@ -164,84 +377,233 @@ export default function CommsPage() {
             </div>
           )}
 
-          {/* Messages */}
+          {/* Messages / Mission Transcript */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-4">
-            {messages.map(msg => {
-              const isOperator = msg.from === 'Commander Kai'
-              const isSystem = msg.type === 'system' || msg.type === 'alert'
-              const color = agentAvatarColor[msg.from] || '#ccc3d8'
+            {isExecChannel && activeExecution ? (
+              <>
+                {/* Mission execution transcript */}
+                {activeExecution.transcript.map(entry => {
+                  const roleColor = entry.role === 'system' ? '#94A3B8' : entry.role === 'operator' ? '#863bff' : entry.role === 'tool' ? '#F59E0B' : '#10B981'
+                  const roleIcon = entry.role === 'system' ? 'info' : entry.role === 'operator' ? 'person' : entry.role === 'tool' ? 'build' : 'smart_toy'
+                  const isOp = entry.role === 'operator'
 
-              if (isSystem) {
-                return (
-                  <div key={msg.id} className="flex justify-center">
-                    <div className={cn(
-                      'px-4 py-2 rounded-lg text-[11px] flex items-center gap-2',
-                      msg.type === 'alert'
-                        ? 'bg-status-offline/10 border border-status-offline/20 text-status-offline'
-                        : 'bg-surface-container-high/50 border border-white/5 text-on-surface-variant/60',
-                    )}>
-                      <Icon name={msg.type === 'alert' ? 'warning' : 'info'} size="sm" />
-                      {msg.content}
-                      <span className="text-[9px] opacity-50 ml-2">{msg.timestamp}</span>
+                  return (
+                    <div key={entry.id} className={cn('flex gap-3', isOp && 'flex-row-reverse')}>
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-headline font-bold shrink-0"
+                        style={{ backgroundColor: `${roleColor}15`, color: roleColor, border: `1px solid ${roleColor}30` }}
+                      >
+                        <Icon name={roleIcon} size="sm" />
+                      </div>
+                      <div className={cn('max-w-[75%]', isOp && 'text-right')}>
+                        <div className={cn('flex items-center gap-2 mb-1', isOp && 'flex-row-reverse')}>
+                          <span className="text-[10px] font-label font-bold uppercase tracking-wider" style={{ color: roleColor }}>{entry.agentName}</span>
+                          <span className="text-[9px] text-on-surface-variant/40">{entry.timestamp}</span>
+                          {entry.tokenCount && <span className="text-[8px] text-on-surface-variant/30">{entry.tokenCount} tokens</span>}
+                        </div>
+                        <div className={cn(
+                          'rounded-xl px-4 py-3 text-sm text-on-surface leading-relaxed',
+                          isOp
+                            ? 'bg-primary-container/15 border border-primary-container/20 rounded-tr-sm'
+                            : entry.role === 'tool'
+                              ? 'bg-status-busy/5 border border-status-busy/15 rounded-tl-sm'
+                              : 'bg-surface-container-high/60 border border-white/5 rounded-tl-sm',
+                        )}>
+                          {entry.content}
+                        </div>
+                      </div>
                     </div>
+                  )
+                })}
+                {activeExecution.transcript.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-12 text-on-surface-variant/30">
+                    <Icon name="hourglass_empty" size="lg" className="mb-2" />
+                    <p className="text-[10px] font-label uppercase tracking-widest">Awaiting mission execution...</p>
                   </div>
-                )
-              }
+                )}
+                {activeExecution.status === 'running' && (
+                  <div className="flex items-center gap-2 px-2 py-1">
+                    <span className="text-[10px] font-label text-status-online/60 flex items-center gap-1.5">
+                      <span className="inline-block w-1 h-1 rounded-full bg-status-online animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="inline-block w-1 h-1 rounded-full bg-status-online animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="inline-block w-1 h-1 rounded-full bg-status-online animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="ml-1">Agent executing...</span>
+                    </span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                {messages.map(msg => {
+                  const isOperator = msg.from === 'Commander Kai'
+                  const isSystem = msg.type === 'system' || msg.type === 'alert'
+                  const color = agentAvatarColor[msg.from] || '#ccc3d8'
 
-              return (
-                <div key={msg.id} className={cn('flex gap-3', isOperator && 'flex-row-reverse')}>
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-headline font-bold shrink-0"
-                    style={{ backgroundColor: `${color}15`, color, border: `1px solid ${color}30` }}
-                  >
-                    {msg.fromAvatar}
-                  </div>
-                  <div className={cn('max-w-[75%]', isOperator && 'text-right')}>
-                    <div className={cn('flex items-center gap-2 mb-1', isOperator && 'flex-row-reverse')}>
-                      <span className="text-[10px] font-label font-bold uppercase tracking-wider" style={{ color }}>{msg.from}</span>
-                      <span className="text-[9px] text-on-surface-variant/40">{msg.timestamp}</span>
-                      {msg.pinned && <Icon name="push_pin" size="sm" className="text-primary-container/50" />}
+                  if (isSystem) {
+                    return (
+                      <div key={msg.id} className="flex justify-center">
+                        <div className={cn(
+                          'px-4 py-2 rounded-lg text-[11px] flex items-center gap-2',
+                          msg.type === 'alert'
+                            ? 'bg-status-offline/10 border border-status-offline/20 text-status-offline'
+                            : 'bg-surface-container-high/50 border border-white/5 text-on-surface-variant/60',
+                        )}>
+                          <Icon name={msg.type === 'alert' ? 'warning' : 'info'} size="sm" />
+                          {msg.content}
+                          <span className="text-[9px] opacity-50 ml-2">{msg.timestamp}</span>
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div key={msg.id} className={cn('flex gap-3', isOperator && 'flex-row-reverse')}>
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-headline font-bold shrink-0"
+                        style={{ backgroundColor: `${color}15`, color, border: `1px solid ${color}30` }}
+                      >
+                        {msg.fromAvatar}
+                      </div>
+                      <div className={cn('max-w-[75%]', isOperator && 'text-right')}>
+                        <div className={cn('flex items-center gap-2 mb-1', isOperator && 'flex-row-reverse')}>
+                          <span className="text-[10px] font-label font-bold uppercase tracking-wider" style={{ color }}>{msg.from}</span>
+                          <span className="text-[9px] text-on-surface-variant/40">{msg.timestamp}</span>
+                          {msg.pinned && <Icon name="push_pin" size="sm" className="text-primary-container/50" />}
+                        </div>
+                        <div className={cn(
+                          'rounded-xl px-4 py-3 text-sm text-on-surface leading-relaxed',
+                          isOperator
+                            ? 'bg-primary-container/15 border border-primary-container/20 rounded-tr-sm'
+                            : 'bg-surface-container-high/60 border border-white/5 rounded-tl-sm',
+                        )}>
+                          {msg.content}
+                        </div>
+                      </div>
                     </div>
-                    <div className={cn(
-                      'rounded-xl px-4 py-3 text-sm text-on-surface leading-relaxed',
-                      isOperator
-                        ? 'bg-primary-container/15 border border-primary-container/20 rounded-tr-sm'
-                        : 'bg-surface-container-high/60 border border-white/5 rounded-tl-sm',
-                    )}>
-                      {msg.content}
-                    </div>
+                  )
+                })}
+                {/* Streaming typing indicator */}
+                {isStreaming && messages[messages.length - 1]?.content === '' && (
+                  <div className="flex items-center gap-2 px-2 py-1">
+                    <span className="text-[10px] font-label text-on-surface-variant/40 flex items-center gap-1.5">
+                      <span className="inline-block w-1 h-1 rounded-full bg-on-surface-variant/40 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="inline-block w-1 h-1 rounded-full bg-on-surface-variant/40 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="inline-block w-1 h-1 rounded-full bg-on-surface-variant/40 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </span>
                   </div>
-                </div>
-              )
-            })}
+                )}
+              </>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input */}
-          <div className="p-4 border-t border-white/5">
-            <div className="flex gap-3">
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') sendMessage() }}
-                placeholder={`Message #${channel.name}...`}
-                className="flex-1 bg-surface-container-lowest border border-white/5 rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary-container/30 transition-colors"
-              />
-              <button
-                onClick={sendMessage}
-                disabled={!input.trim()}
-                className="px-4 py-2.5 bg-primary-container text-white rounded-lg hover:brightness-110 transition-all glow-violet disabled:opacity-30 disabled:glow-none"
-              >
-                <Icon name="send" size="sm" />
-              </button>
+          {/* Input — hidden for execution transcript channels */}
+          {isExecChannel ? (
+            <div className="p-4 border-t border-white/5">
+              <div className="flex items-center gap-2 px-1">
+                <Icon name="visibility" size="sm" className="text-on-surface-variant/30" />
+                <span className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant/40">
+                  Read-only mission transcript · {activeExecution?.transcript.length ?? 0} entries
+                </span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="p-4 border-t border-white/5">
+              {/* Gateway status indicator */}
+              <div className="flex items-center gap-2 mb-2 px-1">
+                <span className={cn(
+                  'w-1.5 h-1.5 rounded-full',
+                  gatewayStatus === 'ok' ? 'bg-status-online' : gatewayStatus === 'offline' ? 'bg-status-offline' : 'bg-on-surface-variant/30',
+                )} />
+                <span className="text-[9px] font-label uppercase tracking-widest text-on-surface-variant/40">
+                  {gatewayStatus === 'ok' ? 'Gateway connected' : gatewayStatus === 'offline' ? 'Gateway offline — local only' : 'Checking gateway...'}
+                </span>
+                {isStreaming && (
+                  <span className="text-[9px] font-label uppercase tracking-widest text-primary-container animate-pulse ml-auto">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-status-online animate-pulse mr-1" />
+                    Streaming...
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') sendMessage() }}
+                  placeholder={`Message #${channel.name}...`}
+                  disabled={isStreaming}
+                  className="flex-1 bg-surface-container-lowest border border-white/5 rounded-lg px-4 py-2.5 text-sm text-on-surface placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary-container/30 transition-colors disabled:opacity-50"
+                />
+                <button
+                  onClick={sendMessage}
+                  disabled={!input.trim() || isStreaming}
+                  className="px-4 py-2.5 bg-primary-container text-white rounded-lg hover:brightness-110 transition-all glow-violet disabled:opacity-30 disabled:glow-none"
+                >
+                  <Icon name={isStreaming ? 'more_horiz' : 'send'} size="sm" />
+                </button>
+              </div>
+            </div>
+          )}
         </GlassPanel>
 
         {/* Context Panel */}
-        {context && showContext ? (
+        {isExecChannel && activeExecution ? (
+          <GlassPanel className="p-5 flex flex-col gap-5 overflow-y-auto custom-scrollbar hidden lg:flex">
+            <div>
+              <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-1">Execution Context</p>
+              <h3 className="font-headline font-bold text-white text-sm">{activeExecution.id}</h3>
+            </div>
+            <div>
+              <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Status</p>
+              <StatusChip label={activeExecution.status} color={executionStatusColor[activeExecution.status]} pulse={activeExecution.status === 'running'} />
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60">Progress</p>
+                <span className="text-xs font-bold text-white">{activeExecution.progress}%</span>
+              </div>
+              <ProgressBar value={activeExecution.progress} height="md" color={executionStatusColor[activeExecution.status]} />
+            </div>
+            <div>
+              <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Mission Type</p>
+              <span className="px-2 py-1 rounded text-[10px] font-bold uppercase" style={{ background: `${missionTypeColor[activeExecution.type] ?? '#d2bbff'}15`, color: missionTypeColor[activeExecution.type] ?? '#d2bbff' }}>
+                {activeExecution.type}
+              </span>
+            </div>
+            <div>
+              <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Agent</p>
+              <span className="text-xs text-white font-headline">{activeExecution.assignedAgentId}</span>
+            </div>
+            <div>
+              <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Prompt</p>
+              <p className="text-xs text-on-surface/70 leading-relaxed">{activeExecution.prompt}</p>
+            </div>
+            {activeExecution.toolActions.length > 0 && (
+              <div>
+                <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Tool Actions</p>
+                <div className="space-y-1.5">
+                  {activeExecution.toolActions.map(action => (
+                    <div key={action.id} className={cn(
+                      'flex items-center gap-2 text-[10px] px-2 py-1.5 rounded border',
+                      action.status === 'success' ? 'border-status-online/15 text-status-online' :
+                      action.status === 'failure' ? 'border-status-offline/15 text-status-offline' :
+                      'border-status-busy/15 text-status-busy'
+                    )}>
+                      <Icon name={action.status === 'success' ? 'check_circle' : action.status === 'failure' ? 'error' : 'hourglass_top'} size="sm" />
+                      <span className="font-bold">{action.toolName}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            <div className="mt-auto pt-4 border-t border-white/5">
+              <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Session</p>
+              <p className="text-[10px] text-on-surface-variant/40 font-mono break-all">{activeExecution.sessionKey}</p>
+            </div>
+          </GlassPanel>
+        ) : context && showContext ? (
           <GlassPanel className="p-5 flex flex-col gap-5 overflow-y-auto custom-scrollbar hidden lg:flex">
             <div>
               <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-1">Mission Context</p>
@@ -300,6 +662,19 @@ export default function CommsPage() {
                 </div>
               </div>
             )}
+
+            {/* Session Info */}
+            <div className="mt-auto pt-4 border-t border-white/5">
+              <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/60 mb-2">Session</p>
+              <p className="text-[10px] text-on-surface-variant/40 font-mono break-all">{currentSessionKey}</p>
+              <button
+                onClick={handleResetSession}
+                className="mt-2 text-[10px] font-label uppercase tracking-widest text-status-offline/60 hover:text-status-offline transition-colors flex items-center gap-1"
+              >
+                <Icon name="restart_alt" size="sm" />
+                Reset Session
+              </button>
+            </div>
           </GlassPanel>
         ) : !context && (
           <GlassPanel className="p-5 flex flex-col items-center justify-center gap-3 hidden lg:flex">

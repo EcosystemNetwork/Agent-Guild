@@ -10,6 +10,7 @@ const navItems = [
   { to: '/trust', icon: 'security', label: 'Trust Ledger' },
   { to: '/operator', icon: 'insights', label: 'Operator' },
   { to: '/comms', icon: 'forum', label: 'Comms' },
+  { to: '/registry', icon: 'hub', label: 'Registry' },
 ]
 
 interface SidebarProps {
@@ -42,7 +43,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <img
             src={agentLogo}
             alt="Agent Guild"
-            className="w-10 h-10 min-w-[40px] rounded-lg object-cover drop-shadow-[0_0_10px_rgba(134,59,255,0.4)]"
+            className="w-10 h-10 min-w-[40px] object-contain drop-shadow-[0_0_10px_rgba(134,59,255,0.4)]"
           />
           <div className="opacity-0 lg:group-hover/sidebar:opacity-100 transition-opacity duration-300 whitespace-nowrap sidebar-label">
             <h2 className="font-headline font-bold text-white tracking-tight leading-none text-sm">

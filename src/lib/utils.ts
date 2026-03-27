@@ -60,3 +60,33 @@ export const severityIcon: Record<string, string> = {
   warning: 'warning',
   critical: 'error',
 }
+
+export const connectionStatusColor: Record<string, string> = {
+  connected: '#10B981',
+  disconnected: '#F43F5E',
+  error: '#F59E0B',
+}
+
+export const connectionStatusLabel: Record<string, string> = {
+  connected: 'LINKED',
+  disconnected: 'UNLINKED',
+  error: 'ERROR',
+}
+
+export const routingRoleColor: Record<string, string> = {
+  scout: '#4cd7f6',
+  negotiator: '#F59E0B',
+  operator: '#F43F5E',
+  analyst: '#d2bbff',
+  general: '#10B981',
+}
+
+export const executionStatusColor: Record<string, string> = {
+  'awaiting-approval': '#F59E0B',
+  approved: '#4cd7f6',
+  running: '#10B981',
+  paused: '#F59E0B',
+  completed: '#4cd7f6',
+  failed: '#F43F5E',
+  cancelled: '#94A3B8',
+}

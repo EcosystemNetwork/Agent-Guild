@@ -20,7 +20,7 @@ export default function Topbar({ onMenuToggle }: TopbarProps) {
           <img
             src={agentLogo}
             alt=""
-            className="w-8 h-8 rounded object-cover drop-shadow-[0_0_8px_rgba(134,59,255,0.3)] hidden sm:block"
+            className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(134,59,255,0.3)] hidden sm:block"
           />
           <h1 className="text-lg sm:text-xl font-black text-white tracking-widest font-headline uppercase">
             AGENT GUILD

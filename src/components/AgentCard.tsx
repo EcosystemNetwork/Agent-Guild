@@ -1,5 +1,6 @@
 import type { Agent } from '../types'
-import { agentStatusColor, agentStatusLabel } from '../lib/utils'
+import { agentStatusColor, agentStatusLabel, connectionStatusColor, connectionStatusLabel, routingRoleColor } from '../lib/utils'
+import { useRegistry } from '../contexts/RegistryContext'
 import GlassPanel from './ui/GlassPanel'
 import StatusChip from './ui/StatusChip'
 import ProgressBar from './ui/ProgressBar'
@@ -11,8 +12,13 @@ interface AgentCardProps {
 }
 
 export default function AgentCard({ agent, compact }: AgentCardProps) {
+  const { getEntry } = useRegistry()
+  const entry = getEntry(agent.id)
   const statusColor = agentStatusColor[agent.status] ?? '#ccc3d8'
   const statusText = agentStatusLabel[agent.status] ?? agent.status
+  const connColor = entry ? (connectionStatusColor[entry.connectionStatus] ?? '#94A3B8') : '#94A3B8'
+  const connLabel = entry ? (connectionStatusLabel[entry.connectionStatus] ?? '—') : 'UNBOUND'
+  const roleColor = entry ? (routingRoleColor[entry.role] ?? '#94A3B8') : '#94A3B8'
 
   if (compact) {
     return (
@@ -91,6 +97,35 @@ export default function AgentCard({ agent, compact }: AgentCardProps) {
           </div>
         </div>
       </div>
+
+      {/* OpenClaw Registry Binding */}
+      {entry && (
+        <div className="pt-2 border-t border-white/5 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: connColor }} />
+              <span className="text-[9px] font-label uppercase tracking-wider" style={{ color: connColor }}>{connLabel}</span>
+            </div>
+            <span className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase" style={{ background: `${roleColor}15`, color: roleColor }}>
+              {entry.role}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[9px]">
+            <div className="flex justify-between">
+              <span className="text-on-surface-variant/50">Target</span>
+              <span className="text-white font-mono text-[8px]">{entry.openclawAgentId.slice(-8)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-on-surface-variant/50">Session</span>
+              <span className="text-white font-mono text-[8px]">{entry.currentSessionId?.slice(-5) ?? '—'}</span>
+            </div>
+            <div className="flex justify-between col-span-2">
+              <span className="text-on-surface-variant/50">Last active</span>
+              <span className="text-on-surface-variant">{entry.lastActivity}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-2 pt-2 border-t border-white/5">
         <button className="flex-1 py-2 rounded-lg bg-primary-container text-white text-[10px] font-bold font-label uppercase tracking-wider hover:brightness-110 transition-all glow-violet">
